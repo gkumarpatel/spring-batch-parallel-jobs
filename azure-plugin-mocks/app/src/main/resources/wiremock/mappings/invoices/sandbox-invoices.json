@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/v1/invoices?size=200&offset=0"
+  },
+  "response": {
+    "status": "200",
+    "delayDistribution": {
+      "type": "lognormal",
+      "median": 500,
+      "sigma": 0.4
+    },
+    "bodyFileName": "invoices/sandbox-invoices.json",
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}
+
