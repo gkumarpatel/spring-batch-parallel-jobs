@@ -1,0 +1,18 @@
+{
+  "request" : {
+    "method" : "GET",
+    "url" : "/v1/invoices/G001403386/lineitems?provider=onetime&invoicelineitemtype=usagelineitems"
+  },
+  "response" : {
+    "status" : "200",
+    "delayDistribution": {
+      "type": "lognormal",
+      "median": 500,
+      "sigma": 0.4
+    },
+    "bodyFileName" : "lineitem/G001403386-lineitems-functional.json",
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}
