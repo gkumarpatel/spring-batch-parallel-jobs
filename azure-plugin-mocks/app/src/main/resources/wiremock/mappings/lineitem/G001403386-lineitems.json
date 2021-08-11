@@ -10,7 +10,7 @@
       "median": 500,
       "sigma": 0.4
     },
-    "bodyFileName" : "lineitem/G001403386-lineitems.json",
+    "bodyFileName" : "lineitem/G001403386-lineitems-functional.json",
     "headers": {
       "Content-Type": "application/json"
     }
