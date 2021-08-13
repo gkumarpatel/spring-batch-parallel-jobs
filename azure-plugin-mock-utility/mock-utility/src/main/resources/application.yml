@@ -1,0 +1,9 @@
+reconcillation:
+  dailyRated:
+    fileName: "name"
+  oneTime:
+    fileName: "name"
+mock:
+  numberOfLineItems: 1000000
+  chunkSize: 2000
+    
