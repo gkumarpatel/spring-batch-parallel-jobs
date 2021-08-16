@@ -24,7 +24,7 @@ import com.opencsv.bean.CsvToBeanBuilder;
 
 @Component
 @Slf4j
-public class Reader implements ItemStreamReader<InvoiceLineItem> {
+public class InvoiceItemReader implements ItemStreamReader<InvoiceLineItem> {
 
     @Value("classpath:${reconcillation.oneTime.fileName}")
     private Resource oneTimeFileResource;
