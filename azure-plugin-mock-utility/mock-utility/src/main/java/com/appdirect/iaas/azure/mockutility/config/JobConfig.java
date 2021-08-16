@@ -7,6 +7,7 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
@@ -30,7 +31,9 @@ public class JobConfig {
     
     @Bean
     public Job job(@Qualifier("generateMocks") Step step1) {
-        return jobs.get("myJob").start(step1).build();
+        return jobs.get("myJob")
+                .incrementer(new RunIdIncrementer())
+                .start(step1).build();
     }
 
     @Bean
