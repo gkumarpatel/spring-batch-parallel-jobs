@@ -10,9 +10,9 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.support.JobRepositoryFactoryBean;
-import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -23,6 +23,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class SpringBatchConfigurer extends DefaultBatchConfigurer {
   
   private final PlatformTransactionManager transactionManager;
+  private final DataSource dataSource;
 
   @Bean
   public TaskExecutor springBatchTaskExecutor() {
@@ -51,19 +52,9 @@ public class SpringBatchConfigurer extends DefaultBatchConfigurer {
   @Bean
   protected JobRepository createJobRepository() throws Exception {
     JobRepositoryFactoryBean factory = new JobRepositoryFactoryBean();
-    factory.setDataSource(getDataSource());
+    factory.setDataSource(dataSource);
     factory.setTransactionManager(transactionManager);
     factory.setIsolationLevelForCreate("ISOLATION_REPEATABLE_READ");
     return factory.getObject();
-  }
-
-  @Bean
-  public DataSource getDataSource() {
-    DataSourceBuilder dataSourceBuilder = DataSourceBuilder.create();
-    dataSourceBuilder.driverClassName("org.h2.Driver");
-    dataSourceBuilder.url("jdbc:h2:mem:test");
-    dataSourceBuilder.username("SA");
-    dataSourceBuilder.password("");
-    return dataSourceBuilder.build();
   }
 }

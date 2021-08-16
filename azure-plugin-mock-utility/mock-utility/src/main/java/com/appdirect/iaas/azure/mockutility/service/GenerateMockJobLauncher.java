@@ -26,7 +26,7 @@ public class GenerateMockJobLauncher implements CommandLineRunner {
     @Value("reconcillation.oneTime.fileName")
     private String dailyRatedReconcillationFileName;
 
-    private JobLauncher jobLauncher;
+    private final JobLauncher jobLauncher;
 
     @Autowired
     private static Job generateMocks;

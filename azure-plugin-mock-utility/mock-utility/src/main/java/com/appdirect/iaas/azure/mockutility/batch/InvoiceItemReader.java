@@ -18,8 +18,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
+import com.microsoft.store.partnercenter.models.invoices.DailyRatedUsageLineItem;
 import com.microsoft.store.partnercenter.models.invoices.InvoiceLineItem;
 import com.microsoft.store.partnercenter.models.invoices.OneTimeInvoiceLineItem;
+import com.opencsv.CSVParserBuilder;
+import com.opencsv.CSVReaderBuilder;
 import com.opencsv.bean.CsvToBeanBuilder;
 
 @Component
@@ -42,7 +45,7 @@ public class InvoiceItemReader implements ItemStreamReader<InvoiceLineItem> {
     private int dailyRatedIndex = 0;
     private int oneTimeIndex = 0;
 
-    private List<OneTimeInvoiceLineItem> dailyRatedInvoiceLineItem;
+    private List<DailyRatedUsageLineItem> dailyRatedInvoiceLineItem;
 
     private List<OneTimeInvoiceLineItem> oneTimeInvoiceLineItem;
 
@@ -90,11 +93,19 @@ public class InvoiceItemReader implements ItemStreamReader<InvoiceLineItem> {
     public void open(ExecutionContext executionContext) throws ItemStreamException {
         log.info(" Generating the subscriptions from properties file {} ", oneTimeFileResource.getFilename());
         try {
+            var csvParser = new CSVParserBuilder()
+                    .withSeparator(',')
+                    .withIgnoreQuotations(true)
+                    .build();
+                    
             oneTimeInvoiceLineItem = new CsvToBeanBuilder(new BufferedReader(new InputStreamReader(oneTimeFileResource.getInputStream())))
                     .withType(OneTimeInvoiceLineItem.class)
                     .build()
                     .parse();
-            dailyRatedInvoiceLineItem = new ArrayList<>();
+           var oneTimeInvoiceCsvReader = new CSVReaderBuilder(new BufferedReader(new InputStreamReader(oneTimeFileResource.getInputStream())))
+                   .withCSVParser(csvParser).withSkipLines(0).build();
+           
+           dailyRatedInvoiceLineItem = new ArrayList<>();
         } catch (IOException e) {
             log.error("Error while reading the subscriptions from properties file {}, {}", oneTimeFileResource.getFilename(), e.getMessage());
         }
