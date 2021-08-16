@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.microsoft.store.partnercenter.models.invoices.InvoiceLineItem;
+
 @RequiredArgsConstructor
 @Configuration
 public class JobConfig {
@@ -31,10 +33,10 @@ public class JobConfig {
     }
 
     @Bean
-    protected Step generateMocks(ItemReader<Object> reader,
+    protected Step generateMocks(ItemReader<InvoiceLineItem> reader,
                                  ItemProcessor<Object, Object> processor,
                                  ItemWriter<Object> writer) {
-        return steps.get("step1")
+        return steps.get("generateMocks")
                 .<Object, Object>chunk(chunkSize)
                 .reader(reader)
                 .processor(processor)

@@ -15,18 +15,26 @@ configurations {
 }
 
 repositories {
+	maven { url "https://artifactory.appdirect.tools/artifactory/repo" }
 	mavenCentral()
+	maven { url "https://plugins.gradle.org/m2/" }
+	gradlePluginPortal()
 }
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-batch'
 	compileOnly 'org.projectlombok:lombok'
+	compileOnly 'com.opencsv:opencsv:5.3'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'com.h2database:h2'
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.batch:spring-batch-test'
+	
+	implementation("com.appdirect.microsoft:partnercenter-sdk:1.15.15") {
+		exclude group: "com.google.guava", module:"guava"
+	}
 }
 
 test {

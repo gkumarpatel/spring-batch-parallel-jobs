@@ -1,6 +1,6 @@
 reconcillation:
   dailyRated:
-    fileName: "name"
+    fileName: "MicrosoftRecncilationFIles/OneTimeInvoiceLineItems.csv"
   oneTime:
     fileName: "name"
 mock:
