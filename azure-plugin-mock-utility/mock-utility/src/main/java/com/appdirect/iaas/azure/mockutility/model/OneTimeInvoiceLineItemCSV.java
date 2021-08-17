@@ -1,8 +1,9 @@
 package com.appdirect.iaas.azure.mockutility.model;
 
-import lombok.Data;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
-import org.joda.time.DateTime;
+import lombok.Data;
 
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvDate;
@@ -25,11 +26,11 @@ public class OneTimeInvoiceLineItemCSV {
 
     @CsvDate(value = "MM/dd/yyyy")
     @CsvBindByName(column = "ChargeEndDate")
-    private DateTime chargeEndDate;
+    private LocalDate chargeEndDate;
 
     @CsvDate(value = "MM/dd/yyyy")
     @CsvBindByName(column = "ChargeStartDate")
-    private DateTime chargeStarDate;
+    private LocalDate chargeStarDate;
 
     @CsvBindByName(column = "ChargeType")
     private String chargeType;
@@ -64,7 +65,7 @@ public class OneTimeInvoiceLineItemCSV {
 
     @CsvBindByName(column = "OrderDate")
     @CsvDate(value = "MM/dd/yyyy")
-    private DateTime orderDate;
+    private LocalDate orderDate;
 
     @CsvBindByName(column = "OrderId")
     private String orderId;
@@ -77,7 +78,7 @@ public class OneTimeInvoiceLineItemCSV {
 
     @CsvBindByName(column = "PCToBCExchangeRateDate")
     @CsvDate(value = "MM/dd/yyyy")
-    private DateTime pcToBCExchangeRateDate;
+    private LocalDate pcToBCExchangeRateDate;
 
     @CsvBindByName(column = "PriceAdjustmentDescription")
     private String priceAdjustmentDescription;

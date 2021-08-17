@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.batch.item.ExecutionContext;
@@ -18,16 +20,19 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
+import com.appdirect.iaas.azure.mockutility.mapper.OneTimeInvoiceLineItemMapper;
+import com.appdirect.iaas.azure.mockutility.model.OneTimeInvoiceLineItemCSV;
 import com.microsoft.store.partnercenter.models.invoices.DailyRatedUsageLineItem;
 import com.microsoft.store.partnercenter.models.invoices.InvoiceLineItem;
 import com.microsoft.store.partnercenter.models.invoices.OneTimeInvoiceLineItem;
-import com.opencsv.CSVParserBuilder;
-import com.opencsv.CSVReaderBuilder;
 import com.opencsv.bean.CsvToBeanBuilder;
 
 @Component
+@RequiredArgsConstructor
 @Slf4j
 public class InvoiceItemReader implements ItemStreamReader<InvoiceLineItem> {
+
+    private final OneTimeInvoiceLineItemMapper oneTimeInvoiceLineItemMapper;
 
     @Value("classpath:${reconcillation.oneTime.fileName}")
     private Resource oneTimeFileResource;
@@ -77,7 +82,7 @@ public class InvoiceItemReader implements ItemStreamReader<InvoiceLineItem> {
             }
         }
         numberOfLineItemsRead++;
-        
+
         return invoiceLineItem;
     }
 
@@ -93,19 +98,14 @@ public class InvoiceItemReader implements ItemStreamReader<InvoiceLineItem> {
     public void open(ExecutionContext executionContext) throws ItemStreamException {
         log.info(" Generating the subscriptions from properties file {} ", oneTimeFileResource.getFilename());
         try {
-            var csvParser = new CSVParserBuilder()
-                    .withSeparator(',')
-                    .withIgnoreQuotations(true)
-                    .build();
-                    
-            oneTimeInvoiceLineItem = new CsvToBeanBuilder(new BufferedReader(new InputStreamReader(oneTimeFileResource.getInputStream())))
-                    .withType(OneTimeInvoiceLineItem.class)
+            List<OneTimeInvoiceLineItemCSV> oneTimeInvoiceLineItemCsvList = new CsvToBeanBuilder(new BufferedReader(new InputStreamReader(oneTimeFileResource.getInputStream())))
+                    .withType(OneTimeInvoiceLineItemCSV.class)
                     .build()
                     .parse();
-           var oneTimeInvoiceCsvReader = new CSVReaderBuilder(new BufferedReader(new InputStreamReader(oneTimeFileResource.getInputStream())))
-                   .withCSVParser(csvParser).withSkipLines(0).build();
-           
-           dailyRatedInvoiceLineItem = new ArrayList<>();
+
+            oneTimeInvoiceLineItem = oneTimeInvoiceLineItemCsvList.stream().map(oneTimeInvoiceLineItemMapper::mapFromOneTimeInvoiceLineItemCSV).collect(Collectors.toList());
+
+            dailyRatedInvoiceLineItem = new ArrayList<>();
         } catch (IOException e) {
             log.error("Error while reading the subscriptions from properties file {}, {}", oneTimeFileResource.getFilename(), e.getMessage());
         }
@@ -113,7 +113,7 @@ public class InvoiceItemReader implements ItemStreamReader<InvoiceLineItem> {
 
     @Override
     public void update(ExecutionContext executionContext) throws ItemStreamException {
-        
+
     }
 
     @Override

@@ -27,16 +27,14 @@ public class GenerateMockJobLauncher implements CommandLineRunner {
     private String dailyRatedReconcillationFileName;
 
     private final JobLauncher jobLauncher;
-
-    @Autowired
-    private static Job generateMocks;
+    
+    private final Job generateMocks;
 
     public void launchGenerateMockJob() {
         JobParametersBuilder jobParametersBuilder = new JobParametersBuilder();
 
         jobParametersBuilder.addString("oneTimeReconcillationFileName", oneTimeReconcillationFileName)
                 .addString("dailyRatedReconcillationFileName", dailyRatedReconcillationFileName)
-                .addString("jobLaunchTime", LocalDateTime.now().toString())
                 .toJobParameters();
         try {
             jobLauncher.run(generateMocks, jobParametersBuilder.toJobParameters());
