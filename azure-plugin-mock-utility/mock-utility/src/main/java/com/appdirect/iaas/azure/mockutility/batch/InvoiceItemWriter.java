@@ -1,20 +1,133 @@
 package com.appdirect.iaas.azure.mockutility.batch;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.text.StringSubstitutor;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.appdirect.iaas.azure.mockutility.mapper.DailyRatedUsageLineItemMapper;
+import com.appdirect.iaas.azure.mockutility.mapper.OneTimeInvoiceLineItemMapper;
+import com.appdirect.iaas.azure.mockutility.model.DailyRatedUsageItemsResponse;
+import com.appdirect.iaas.azure.mockutility.model.DailyRatedUsageLineItemBean;
+import com.appdirect.iaas.azure.mockutility.model.OneTimeInvoiceLineItemBean;
+import com.appdirect.iaas.azure.mockutility.model.OneTimeInvoiceLineItemResponse;
+import com.appdirect.iaas.azure.mockutility.model.ResourceLink;
+import com.appdirect.iaas.azure.mockutility.model.ResourceLinkHeader;
+import com.microsoft.store.partnercenter.models.invoices.DailyRatedUsageLineItem;
 import com.microsoft.store.partnercenter.models.invoices.InvoiceLineItem;
+import com.microsoft.store.partnercenter.models.invoices.OneTimeInvoiceLineItem;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
-    
+
+    private final OneTimeInvoiceLineItemMapper oneTimeInvoiceLineItemMapper;
+    private final DailyRatedUsageLineItemMapper dailyRatedUsageLineItemMapper;
+
+    private static final String selfResourceLinkURITemplate = "/invoices/${invoiceId}/lineitems?provider=OneTime&invoicelineitemtype=UsageLineItems&size=${size}";
+    private static final String nextResourceLinkURITemplate = "/invoices/${invoiceId}/lineitems?provider=OneTime&invoicelineitemtype=UsageLineItems&size=${size}&seekOperation=Next";
+    @Value("${mock.numberOfLineItems}")
+    private Long numberOfLineItems;
+
+    private static Long lineItemsToWrite;
+
+    @PostConstruct
+    public void setUp() {
+        lineItemsToWrite = numberOfLineItems;
+    }
+
+
     @Override
     public void write(List<? extends InvoiceLineItem> items) throws Exception {
-      
+        boolean isLastResponse = false;
+
+        if (lineItemsToWrite.equals(2 * items.size())) { //less than or equal
+            isLastResponse = true;
+        }
+        InvoiceLineItem invoiceLineItem = items.get(0);
+
+        if (invoiceLineItem instanceof OneTimeInvoiceLineItem) {
+            OneTimeInvoiceLineItemResponse oneTimeInvoiceLineItemResponse = new OneTimeInvoiceLineItemResponse();
+            String continuationToken = null;
+
+            List<OneTimeInvoiceLineItemBean> oneTimeInvoiceLineItemBeans = items.stream().map(item -> oneTimeInvoiceLineItemMapper.mapFromOneTimeInvoiceLineItem((OneTimeInvoiceLineItem) item)
+            ).collect(Collectors.toList());
+
+            oneTimeInvoiceLineItemResponse.setList(oneTimeInvoiceLineItemBeans);
+            oneTimeInvoiceLineItemResponse.setTotalCount(oneTimeInvoiceLineItemBeans.size());
+
+            if (!isLastResponse) {
+                continuationToken = RandomStringUtils.random(200, true, true);
+            }
+            oneTimeInvoiceLineItemResponse.setContinuationToken(continuationToken);
+            oneTimeInvoiceLineItemResponse.setLinks(getLinks(isLastResponse, continuationToken, ((OneTimeInvoiceLineItem) invoiceLineItem).getInvoiceNumber(), String.valueOf(items.size())));
+
+        } else {
+
+            DailyRatedUsageItemsResponse dailyRatedUsageItemsResponse = new DailyRatedUsageItemsResponse();
+            String continuationToken = null;
+
+            List<DailyRatedUsageLineItemBean> dailyRatedUsageLineItemBeans = items.stream().map(item -> dailyRatedUsageLineItemMapper.mapFromDailyRatedInvoiceLineItem((DailyRatedUsageLineItem) item))
+                    .collect(Collectors.toList());
+            dailyRatedUsageItemsResponse.setList(dailyRatedUsageLineItemBeans);
+            dailyRatedUsageItemsResponse.setTotalCount(dailyRatedUsageLineItemBeans.size());
+
+            if (!isLastResponse) {
+                continuationToken = RandomStringUtils.random(200, true, true);
+            }
+
+            dailyRatedUsageItemsResponse.setContinuationToken(continuationToken);
+            dailyRatedUsageItemsResponse.setLinks(getLinks(isLastResponse, continuationToken, ((DailyRatedUsageLineItem) invoiceLineItem).getInvoiceNumber(), String.valueOf(items.size())));
+        }
+
+        lineItemsToWrite -= items.size();
+    }
+
+    private Map<String, ResourceLink> getLinks(boolean isLastResponse, String continuationToken, String invoiceId, String pageSize) {
+        Map<String, ResourceLink> links = new HashMap<>();
+        Map<String, String> templateTokens = new HashMap<>();
+        templateTokens.put("invoiceId", invoiceId);
+        templateTokens.put("size", pageSize);
+
+        StringSubstitutor stringSubstitutor = new StringSubstitutor(templateTokens);
+
+        if (!isLastResponse) {
+            ResourceLink nextLink = new ResourceLink();
+            List<ResourceLinkHeader> headers = new ArrayList<>();
+            ResourceLinkHeader nextLinkHeader = new ResourceLinkHeader();
+            nextLinkHeader.setKey("MS-ContinuationToken");
+            nextLinkHeader.setValue(continuationToken);
+            nextLink.setHeaders(headers);
+            nextLink.setMethod("GET");
+
+            nextLink.setUri(stringSubstitutor.replace(nextResourceLinkURITemplate));
+
+            links.put("next", nextLink);
+        }
+
+        ResourceLink selfLink = new ResourceLink();
+        List<ResourceLinkHeader> headers = Collections.emptyList();
+
+        selfLink.setHeaders(headers);
+        selfLink.setUri(stringSubstitutor.replace(selfResourceLinkURITemplate));
+        selfLink.setMethod("GET");
+
+        links.put("self", selfLink);
+
+        return links;
     }
 }
