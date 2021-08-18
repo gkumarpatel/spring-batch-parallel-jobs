@@ -3,7 +3,6 @@ package com.appdirect.iaas.azure.mockutility.batch;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,7 +19,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
+import com.appdirect.iaas.azure.mockutility.mapper.DailyRatedUsageLineItemMapper;
 import com.appdirect.iaas.azure.mockutility.mapper.OneTimeInvoiceLineItemMapper;
+import com.appdirect.iaas.azure.mockutility.model.DailyRatedUsageLineItemCSV;
 import com.appdirect.iaas.azure.mockutility.model.OneTimeInvoiceLineItemCSV;
 import com.microsoft.store.partnercenter.models.invoices.DailyRatedUsageLineItem;
 import com.microsoft.store.partnercenter.models.invoices.InvoiceLineItem;
@@ -33,9 +34,13 @@ import com.opencsv.bean.CsvToBeanBuilder;
 public class InvoiceItemReader implements ItemStreamReader<InvoiceLineItem> {
 
     private final OneTimeInvoiceLineItemMapper oneTimeInvoiceLineItemMapper;
+    private final DailyRatedUsageLineItemMapper dailyRatedUsageLineItemMapper;
 
     @Value("classpath:${reconcillation.oneTime.fileName}")
     private Resource oneTimeFileResource;
+
+    @Value("classpath:${reconcillation.dailyRated.fileName}")
+    private Resource dailyRatedFileResource;
 
     @Value("${mock.numberOfLineItems}")
     private Long numberOfLineItems;
@@ -57,7 +62,7 @@ public class InvoiceItemReader implements ItemStreamReader<InvoiceLineItem> {
     @Override
     public InvoiceLineItem read() throws Exception, UnexpectedInputException, ParseException, NonTransientResourceException {
 
-        if (numberOfLineItemsRead == numberOfLineItems) {
+        if (numberOfLineItemsRead.equals(numberOfLineItems)) {
             return null;
         }
 
@@ -86,16 +91,20 @@ public class InvoiceItemReader implements ItemStreamReader<InvoiceLineItem> {
 
     @Override
     public void open(ExecutionContext executionContext) throws ItemStreamException {
-        log.info(" Generating the subscriptions from properties file {} ", oneTimeFileResource.getFilename());
         try {
-            List<OneTimeInvoiceLineItemCSV> oneTimeInvoiceLineItemCsvList = new CsvToBeanBuilder(new BufferedReader(new InputStreamReader(oneTimeFileResource.getInputStream())))
+            List<OneTimeInvoiceLineItemCSV> oneTimeInvoiceLineItemCSVList = new CsvToBeanBuilder(new BufferedReader(new InputStreamReader(oneTimeFileResource.getInputStream())))
                     .withType(OneTimeInvoiceLineItemCSV.class)
                     .build()
                     .parse();
-            oneTimeInvoiceLineItem = oneTimeInvoiceLineItemCsvList.stream().map(oneTimeInvoiceLineItemMapper::mapFromOneTimeInvoiceLineItemCSV).collect(Collectors.toList());
-            dailyRatedInvoiceLineItem = new ArrayList<>();
+            oneTimeInvoiceLineItem = oneTimeInvoiceLineItemCSVList.stream().map(oneTimeInvoiceLineItemMapper::mapFromOneTimeInvoiceLineItemCSV).collect(Collectors.toList());
+
+            List<DailyRatedUsageLineItemCSV> dailyRatedUsageLineItemCSVList = new CsvToBeanBuilder(new BufferedReader(new InputStreamReader(dailyRatedFileResource.getInputStream())))
+                    .withType(DailyRatedUsageLineItemCSV.class)
+                    .build()
+                    .parse();
+            dailyRatedInvoiceLineItem = dailyRatedUsageLineItemCSVList.stream().map(dailyRatedUsageLineItemMapper::mapFromDailyRatedInvoiceLineItemCSV).collect(Collectors.toList());
         } catch (IOException e) {
-            log.error("Error while reading the subscriptions from properties file {}, {}", oneTimeFileResource.getFilename(), e.getMessage());
+            log.error("Error while Reading the usages from file {}", e.getMessage());
         }
     }
 

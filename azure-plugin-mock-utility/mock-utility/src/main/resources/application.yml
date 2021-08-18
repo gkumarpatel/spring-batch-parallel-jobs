@@ -1,11 +1,11 @@
 reconcillation:
   dailyRated:
-    fileName: "None"
+    fileName: "MicrosoftRecncilationFIles/DailyRatedusageLineItems.csv"
   oneTime:
     fileName: "MicrosoftRecncilationFIles/OneTimeInvoiceLineItems.csv"
 mock:
-  numberOfLineItems: 1000000
-  chunkSize: 2000
+  numberOfLineItems: 1000
+  chunkSize: 100
   
 spring:
   datasource:

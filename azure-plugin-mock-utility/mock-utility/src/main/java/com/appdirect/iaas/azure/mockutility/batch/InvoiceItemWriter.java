@@ -15,6 +15,6 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
     
     @Override
     public void write(List<? extends InvoiceLineItem> items) throws Exception {
-        
+      
     }
 }

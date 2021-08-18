@@ -20,7 +20,7 @@ public class OneTimeInvoiceLineItemMapper {
     public void init() {
         var mapperFactory = new DefaultMapperFactory.Builder().build();
         mapperFactory.classMap(OneTimeInvoiceLineItemCSV.class, OneTimeInvoiceLineItem.class).byDefault().register();
-        mapperFactory.getConverterFactory().registerConverter(new DateMapper());
+        mapperFactory.getConverterFactory().registerConverter(new DateConverter());
         mapperFacade = mapperFactory.getMapperFacade();
     }
 
