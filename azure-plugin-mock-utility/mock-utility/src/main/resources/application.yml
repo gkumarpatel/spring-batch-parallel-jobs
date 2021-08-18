@@ -7,6 +7,12 @@ mock:
   numberOfLineItems: 1000
   chunkSize: 100
   
+partenerCenterJson:
+  dailyRated:
+    location: "PartnerCenterAPIResponse/DailyRatedUsageLineItems"
+  oneTime:
+    location: "PartnerCenterAPIResponse/OneTImeInvoiceLineItems"
+  
 spring:
   datasource:
     driver-class-name: org.h2.Driver

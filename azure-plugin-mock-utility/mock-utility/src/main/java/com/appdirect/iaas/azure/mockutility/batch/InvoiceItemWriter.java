@@ -1,5 +1,6 @@
 package com.appdirect.iaas.azure.mockutility.batch;
 
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,6 +27,7 @@ import com.appdirect.iaas.azure.mockutility.model.OneTimeInvoiceLineItemBean;
 import com.appdirect.iaas.azure.mockutility.model.OneTimeInvoiceLineItemResponse;
 import com.appdirect.iaas.azure.mockutility.model.ResourceLink;
 import com.appdirect.iaas.azure.mockutility.model.ResourceLinkHeader;
+import com.google.gson.Gson;
 import com.microsoft.store.partnercenter.models.invoices.DailyRatedUsageLineItem;
 import com.microsoft.store.partnercenter.models.invoices.InvoiceLineItem;
 import com.microsoft.store.partnercenter.models.invoices.OneTimeInvoiceLineItem;
@@ -35,27 +37,36 @@ import com.microsoft.store.partnercenter.models.invoices.OneTimeInvoiceLineItem;
 @RequiredArgsConstructor
 public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
 
+    private static final String selfResourceLinkURITemplate = "/invoices/${invoiceId}/lineitems?provider=OneTime&invoicelineitemtype=UsageLineItems&size=${size}";
+    private static final String nextResourceLinkURITemplate = "/invoices/${invoiceId}/lineitems?provider=OneTime&invoicelineitemtype=UsageLineItems&size=${size}&seekOperation=Next";
+    private static Long lineItemsToWrite;
+    private static int oneTimeJsonFileCount = 1;
+    private static int dailyRatedJsonFileCount = 1;
+
     private final OneTimeInvoiceLineItemMapper oneTimeInvoiceLineItemMapper;
     private final DailyRatedUsageLineItemMapper dailyRatedUsageLineItemMapper;
 
-    private static final String selfResourceLinkURITemplate = "/invoices/${invoiceId}/lineitems?provider=OneTime&invoicelineitemtype=UsageLineItems&size=${size}";
-    private static final String nextResourceLinkURITemplate = "/invoices/${invoiceId}/lineitems?provider=OneTime&invoicelineitemtype=UsageLineItems&size=${size}&seekOperation=Next";
     @Value("${mock.numberOfLineItems}")
     private Long numberOfLineItems;
 
-    private static Long lineItemsToWrite;
+    @Value("${partenerCenterJson.dailyRated.location}")
+    private String dailyRatedResponsePath;
+
+    @Value("${partenerCenterJson.oneTime.location}")
+    private String oneTimeResponsePath;
 
     @PostConstruct
     public void setUp() {
         lineItemsToWrite = numberOfLineItems;
     }
 
-
     @Override
     public void write(List<? extends InvoiceLineItem> items) throws Exception {
+        Gson gson = new Gson();
+
         boolean isLastResponse = false;
 
-        if (lineItemsToWrite.equals(2 * items.size())) { //less than or equal
+        if (lineItemsToWrite <= (2 * items.size())) {
             isLastResponse = true;
         }
         InvoiceLineItem invoiceLineItem = items.get(0);
@@ -76,6 +87,9 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
             oneTimeInvoiceLineItemResponse.setContinuationToken(continuationToken);
             oneTimeInvoiceLineItemResponse.setLinks(getLinks(isLastResponse, continuationToken, ((OneTimeInvoiceLineItem) invoiceLineItem).getInvoiceNumber(), String.valueOf(items.size())));
 
+            String jsonPath = oneTimeResponsePath.concat("_").concat(String.valueOf(oneTimeJsonFileCount++));
+            gson.toJson(oneTimeInvoiceLineItemResponse, new FileWriter(jsonPath));
+
         } else {
 
             DailyRatedUsageItemsResponse dailyRatedUsageItemsResponse = new DailyRatedUsageItemsResponse();
@@ -92,6 +106,9 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
 
             dailyRatedUsageItemsResponse.setContinuationToken(continuationToken);
             dailyRatedUsageItemsResponse.setLinks(getLinks(isLastResponse, continuationToken, ((DailyRatedUsageLineItem) invoiceLineItem).getInvoiceNumber(), String.valueOf(items.size())));
+
+            String jsonPath = dailyRatedResponsePath.concat("_").concat(String.valueOf(oneTimeJsonFileCount++));
+            gson.toJson(dailyRatedUsageItemsResponse, new FileWriter(jsonPath));
         }
 
         lineItemsToWrite -= items.size();
