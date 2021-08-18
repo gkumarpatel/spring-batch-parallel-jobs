@@ -1,7 +1,6 @@
 package com.appdirect.iaas.azure.mockutility.model;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 import lombok.Data;
 

@@ -45,7 +45,7 @@ public class InvoiceItemReader implements ItemStreamReader<InvoiceLineItem> {
 
     private Long numberOfLineItemsRead = 0l;
 
-    private Boolean isCurrentListDailyRated = true;
+    private Boolean isCurrentListDailyRated = false;
 
     private int dailyRatedIndex = 0;
     private int oneTimeIndex = 0;
@@ -63,18 +63,16 @@ public class InvoiceItemReader implements ItemStreamReader<InvoiceLineItem> {
 
         InvoiceLineItem invoiceLineItem;
         if (isCurrentListDailyRated) {
-            var dailyRatedCSVRecord = dailyRatedInvoiceLineItem.get(dailyRatedIndex % dailyRatedInvoiceLineItem.size());
+            invoiceLineItem = dailyRatedInvoiceLineItem.get(dailyRatedIndex % dailyRatedInvoiceLineItem.size());
             dailyRatedIndex++;
-            invoiceLineItem = getDailyRatedLineItem(dailyRatedCSVRecord);
 
             if (dailyRatedIndex % chunkSize == 0) {
                 isCurrentListDailyRated = false;
                 dailyRatedIndex = 0;
             }
         } else {
-            var oneTimeCSVRecord = oneTimeInvoiceLineItem.get(oneTimeIndex % oneTimeInvoiceLineItem.size());
+            invoiceLineItem = oneTimeInvoiceLineItem.get(oneTimeIndex % oneTimeInvoiceLineItem.size());
             oneTimeIndex++;
-            invoiceLineItem = getOneTimeLineItem(oneTimeCSVRecord);
 
             if (oneTimeIndex % chunkSize == 0) {
                 isCurrentListDailyRated = true;
@@ -86,14 +84,6 @@ public class InvoiceItemReader implements ItemStreamReader<InvoiceLineItem> {
         return invoiceLineItem;
     }
 
-    private InvoiceLineItem getOneTimeLineItem(Object oneTimeCSVRecord) {
-        return null;
-    }
-
-    private InvoiceLineItem getDailyRatedLineItem(Object dailyRatedCSVRecord) {
-        return null;
-    }
-
     @Override
     public void open(ExecutionContext executionContext) throws ItemStreamException {
         log.info(" Generating the subscriptions from properties file {} ", oneTimeFileResource.getFilename());
@@ -102,9 +92,7 @@ public class InvoiceItemReader implements ItemStreamReader<InvoiceLineItem> {
                     .withType(OneTimeInvoiceLineItemCSV.class)
                     .build()
                     .parse();
-
             oneTimeInvoiceLineItem = oneTimeInvoiceLineItemCsvList.stream().map(oneTimeInvoiceLineItemMapper::mapFromOneTimeInvoiceLineItemCSV).collect(Collectors.toList());
-
             dailyRatedInvoiceLineItem = new ArrayList<>();
         } catch (IOException e) {
             log.error("Error while reading the subscriptions from properties file {}, {}", oneTimeFileResource.getFilename(), e.getMessage());

@@ -8,7 +8,7 @@ import com.microsoft.store.partnercenter.models.invoices.InvoiceLineItem;
 @Component
 public class InvoiceItemProcessor implements ItemProcessor<InvoiceLineItem, InvoiceLineItem>{
     @Override
-    public InvoiceLineItem process(InvoiceLineItem item) throws Exception {
-        return null;
+    public InvoiceLineItem process(InvoiceLineItem invoiceLineItem) throws Exception {
+        return invoiceLineItem;
     }
 }
