@@ -29,7 +29,7 @@ public class OneTimeInvoiceLineItemCSV {
 
     @CsvDate(value = "MM/dd/yyyy")
     @CsvBindByName(column = "ChargeStartDate")
-    private LocalDate chargeStarDate;
+    private LocalDate chargeStartDate;
 
     @CsvBindByName(column = "ChargeType")
     private String chargeType;
@@ -77,7 +77,7 @@ public class OneTimeInvoiceLineItemCSV {
 
     @CsvBindByName(column = "PCToBCExchangeRateDate")
     @CsvDate(value = "MM/dd/yyyy")
-    private LocalDate pcToBCExchangeRateDate;
+    private LocalDate PCToBCExchangeRateDate;
 
     @CsvBindByName(column = "PriceAdjustmentDescription")
     private String priceAdjustmentDescription;

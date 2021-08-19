@@ -102,6 +102,7 @@ public class InvoiceItemReader implements ItemStreamReader<InvoiceLineItem> {
                     .withType(DailyRatedUsageLineItemCSV.class)
                     .build()
                     .parse();
+            
             dailyRatedInvoiceLineItem = dailyRatedUsageLineItemCSVList.stream().map(dailyRatedUsageLineItemMapper::mapFromDailyRatedInvoiceLineItemCSV).collect(Collectors.toList());
         } catch (IOException e) {
             log.error("Error while Reading the usages from file {}", e.getMessage());

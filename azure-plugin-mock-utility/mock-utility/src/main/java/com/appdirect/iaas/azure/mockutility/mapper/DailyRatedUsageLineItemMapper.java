@@ -24,12 +24,38 @@ public class DailyRatedUsageLineItemMapper {
         var mapperFactory = new DefaultMapperFactory.Builder().build();
         mapperFactory.classMap(DailyRatedUsageLineItemCSV.class, DailyRatedUsageLineItem.class).byDefault().register();
         ConverterFactory converterFactory = mapperFactory.getConverterFactory();
-        converterFactory.registerConverter(new DateConverter());
+        converterFactory.registerConverter(new LocalDateAndJodaDateConverter());
         converterFactory.registerConverter(new StringToMapConverter());
         mapperFacade = mapperFactory.getMapperFacade();
 
-        var mapperFactory2 = new DefaultMapperFactory.Builder().build();
-        mapperFactory2.classMap(DailyRatedUsageLineItem.class, DailyRatedUsageLineItemBean.class).byDefault().register();
+        var mapperFactory2 = new DefaultMapperFactory.Builder().mapNulls(false).build();
+        mapperFactory2.getConverterFactory().registerConverter(new JodaDateAndLocalDateTimeConverter());
+        mapperFactory2.classMap(DailyRatedUsageLineItem.class, DailyRatedUsageLineItemBean.class)
+                .fieldAToB("additionalInfo", "additionalInfo").fieldAToB("availabilityId", "availabilityId")
+                .fieldAToB("billingCurrency", "billingCurrency").fieldAToB("billingPreTaxTotal", "billingPreTaxTotal")
+                .fieldAToB("customerDomainName", "customerDomainName").fieldAToB("chargeEndDate", "chargeEndDate")
+                .fieldAToB("chargeStartDate", "chargeStartDate").fieldAToB("chargeType", "chargeType")
+                .fieldAToB("consumedService", "consumedService").fieldAToB("customerCountry", "customerCountry")
+                .fieldAToB("customerId", "customerId").fieldAToB("customerName", "customerName")
+                .fieldAToB("effectiveUnitPrice", "effectiveUnitPrice").fieldAToB("entitlementDescription", "entitlementDescription")
+                .fieldAToB("entitlementId", "entitlementId").fieldAToB("invoiceNumber", "invoiceNumber")
+                .fieldAToB("meterCategory", "meterCategory").fieldAToB("meterId", "meterId")
+                .fieldAToB("meterName", "meterName").fieldAToB("meterRegion", "meterRegion")
+                .fieldAToB("meterSubCategory", "meterSubCategory").fieldAToB("meterType", "meterType")
+                .fieldAToB("mpnId", "mpnId").fieldAToB("partnerId", "partnerId")
+                .fieldAToB("partnerName", "partnerName").fieldAToB("PCToBCExchangeRate", "pcToBCExchangeRate")
+                .fieldAToB("PCToBCExchangeRateDate", "pcToBCExchangeRateDate").fieldAToB("pricingCurrency", "pricingCurrency")
+                .fieldAToB("pricingPreTaxTotal", "pricingPreTaxTotal").fieldAToB("productId", "productId")
+                .fieldAToB("productName", "productName").fieldAToB("publisherId", "publisherId")
+                .fieldAToB("publisherName", "publisherName").fieldAToB("quantity", "quantity")
+                .fieldAToB("resellerMpnId", "resellerMpnId").fieldAToB("rateOfPartnerEarnedCredit", "rateOfPartnerEarnedCredit")
+                .fieldAToB("hasPartnerEarnedCredit", "hasPartnerEarnedCredit").fieldAToB("resourceGroup", "resourceGroup")
+                .fieldAToB("resourceUri", "resourceUri").fieldAToB("resourceLocation", "resourceLocation")
+                .fieldAToB("serviceInfo1", "serviceInfo1").fieldAToB("serviceInfo2", "serviceInfo2")
+                .fieldAToB("skuId", "skuId").fieldAToB("skuName", "skuName")
+                .fieldAToB("subscriptionDescription", "subscriptionDescription").fieldAToB("subscriptionId", "subscriptionId")
+                .register();
+
         mapperFacade2 = mapperFactory2.getMapperFacade();
     }
 

@@ -8,7 +8,7 @@ import org.joda.time.DateTimeZone;
 import ma.glasnost.orika.converter.BidirectionalConverter;
 import ma.glasnost.orika.metadata.Type;
 
-public class DateConverter extends BidirectionalConverter<LocalDate, DateTime> {
+public class LocalDateAndJodaDateConverter extends BidirectionalConverter<LocalDate, DateTime> {
 
     @Override
     public DateTime convertTo(LocalDate source, Type<DateTime> destinationType) {

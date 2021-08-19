@@ -1,11 +1,10 @@
 package com.appdirect.iaas.azure.mockutility.model;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Map;
 
 import lombok.Data;
-
-import org.joda.time.DateTime;
 
 import com.microsoft.store.partnercenter.models.invoices.BillingProvider;
 import com.microsoft.store.partnercenter.models.invoices.InvoiceLineItemType;
@@ -20,8 +19,8 @@ public class OneTimeInvoiceLineItemBean {
     private String availabilityId;
     private String billingFrequency;
     private double billableQuantity;
-    private DateTime chargeEndDate;
-    private DateTime chargeStarDate;
+    private LocalDateTime chargeEndDate;
+    private LocalDateTime chargeStarDate;
     private String chargeType;
     private String currency;
     private String customerCountry;
@@ -32,11 +31,11 @@ public class OneTimeInvoiceLineItemBean {
     private String invoiceNumber;
     private String meterDescription;
     private String mpnId;
-    private DateTime orderDate;
+    private LocalDateTime orderDate;
     private String orderId;
     private String partnerId;
     private double pcToBCExchangeRate;
-    private DateTime pcToBCExchangeRateDate;
+    private LocalDateTime pcToBCExchangeRateDate;
     private String priceAdjustmentDescription;
     private String pricingCurrency;
     private String productId;

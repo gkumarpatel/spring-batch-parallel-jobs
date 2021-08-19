@@ -1,11 +1,10 @@
 package com.appdirect.iaas.azure.mockutility.model;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Map;
 
 import lombok.Data;
-
-import org.joda.time.DateTime;
 
 import com.microsoft.store.partnercenter.models.invoices.BillingProvider;
 import com.microsoft.store.partnercenter.models.invoices.InvoiceLineItemType;
@@ -17,8 +16,8 @@ public class DailyRatedUsageLineItemBean {
     private String billingCurrency;
     private double billingPreTaxTotal;
     private String customerDomainName;
-    private DateTime chargeEndDate;
-    private DateTime chargeStartDate;
+    private LocalDateTime chargeEndDate;
+    private LocalDateTime chargeStartDate;
     private String chargeType;
     private String consumedService;
     private String customerCountry;
@@ -38,7 +37,7 @@ public class DailyRatedUsageLineItemBean {
     private String partnerId;
     private String partnerName;
     private double pcToBCExchangeRate;
-    private DateTime pcToBCExchangeRateDate;
+    private LocalDateTime pcToBCExchangeRateDate;
     private String pricingCurrency;
     private double pricingPreTaxTotal;
     private String productId;
@@ -62,7 +61,7 @@ public class DailyRatedUsageLineItemBean {
     private String unitOfMeasure;
     private double unitPrice;
     private String unitType;
-    private DateTime usageDate;
+    private LocalDateTime usageDate;
     private String creditType;
     private String rateOfCredit;
     private InvoiceLineItemType invoiceLineItemType = InvoiceLineItemType.USAGELINEITEMS;

@@ -1,5 +1,6 @@
 package com.appdirect.iaas.azure.mockutility.batch;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,8 +38,9 @@ import com.microsoft.store.partnercenter.models.invoices.OneTimeInvoiceLineItem;
 @RequiredArgsConstructor
 public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
 
-    private static final String selfResourceLinkURITemplate = "/invoices/${invoiceId}/lineitems?provider=OneTime&invoicelineitemtype=UsageLineItems&size=${size}";
-    private static final String nextResourceLinkURITemplate = "/invoices/${invoiceId}/lineitems?provider=OneTime&invoicelineitemtype=UsageLineItems&size=${size}&seekOperation=Next";
+    private static final String selfResourceLinkURITemplate = "/invoices/${invoiceId}/lineitems?provider=OneTime&invoicelineitemtype=${usageType}&size=${size}";
+    private static final String nextResourceLinkURITemplate = "/invoices/${invoiceId}/lineitems?provider=OneTime&invoicelineitemtype=${usageType}&size=${size}&seekOperation=Next";
+
     private static Long lineItemsToWrite;
     private static int oneTimeJsonFileCount = 1;
     private static int dailyRatedJsonFileCount = 1;
@@ -48,12 +50,6 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
 
     @Value("${mock.numberOfLineItems}")
     private Long numberOfLineItems;
-
-    @Value("${partenerCenterJson.dailyRated.location}")
-    private String dailyRatedResponsePath;
-
-    @Value("${partenerCenterJson.oneTime.location}")
-    private String oneTimeResponsePath;
 
     @PostConstruct
     public void setUp() {
@@ -85,10 +81,11 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
                 continuationToken = RandomStringUtils.random(200, true, true);
             }
             oneTimeInvoiceLineItemResponse.setContinuationToken(continuationToken);
-            oneTimeInvoiceLineItemResponse.setLinks(getLinks(isLastResponse, continuationToken, ((OneTimeInvoiceLineItem) invoiceLineItem).getInvoiceNumber(), String.valueOf(items.size())));
+            oneTimeInvoiceLineItemResponse.setLinks(getLinks(isLastResponse, continuationToken, "billinglineitems", ((OneTimeInvoiceLineItem) invoiceLineItem).getInvoiceNumber(), String.valueOf(items.size())));
 
-            String jsonPath = oneTimeResponsePath.concat("_").concat(String.valueOf(oneTimeJsonFileCount++));
-            gson.toJson(oneTimeInvoiceLineItemResponse, new FileWriter(jsonPath));
+            String oneTimeFolderPath =  System.getProperty("user.home").concat("/OneTime");
+            String jsonPath = "OneTimeResponse_".concat(String.valueOf(dailyRatedJsonFileCount++)).concat(".json");
+            gson.toJson(oneTimeInvoiceLineItemResponse, new FileWriter(new File(oneTimeFolderPath, jsonPath)));
 
         } else {
 
@@ -105,20 +102,22 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
             }
 
             dailyRatedUsageItemsResponse.setContinuationToken(continuationToken);
-            dailyRatedUsageItemsResponse.setLinks(getLinks(isLastResponse, continuationToken, ((DailyRatedUsageLineItem) invoiceLineItem).getInvoiceNumber(), String.valueOf(items.size())));
+            dailyRatedUsageItemsResponse.setLinks(getLinks(isLastResponse, continuationToken, "usagelineitems", ((DailyRatedUsageLineItem) invoiceLineItem).getInvoiceNumber(), String.valueOf(items.size())));
 
-            String jsonPath = dailyRatedResponsePath.concat("_").concat(String.valueOf(oneTimeJsonFileCount++));
-            gson.toJson(dailyRatedUsageItemsResponse, new FileWriter(jsonPath));
+            String dailyRatedFolderPath =  System.getProperty("user.home").concat("/DailyRated");
+            String jsonPath = "DailyRatedResponse_".concat(String.valueOf(dailyRatedJsonFileCount++)).concat(".json");
+            gson.toJson(dailyRatedUsageItemsResponse, new FileWriter(new File(dailyRatedFolderPath, jsonPath)));
         }
 
         lineItemsToWrite -= items.size();
     }
 
-    private Map<String, ResourceLink> getLinks(boolean isLastResponse, String continuationToken, String invoiceId, String pageSize) {
+    private Map<String, ResourceLink> getLinks(boolean isLastResponse, String continuationToken, String usageType, String invoiceId, String pageSize) {
         Map<String, ResourceLink> links = new HashMap<>();
         Map<String, String> templateTokens = new HashMap<>();
         templateTokens.put("invoiceId", invoiceId);
         templateTokens.put("size", pageSize);
+        templateTokens.put("usageType", usageType);
 
         StringSubstitutor stringSubstitutor = new StringSubstitutor(templateTokens);
 
@@ -128,6 +127,7 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
             ResourceLinkHeader nextLinkHeader = new ResourceLinkHeader();
             nextLinkHeader.setKey("MS-ContinuationToken");
             nextLinkHeader.setValue(continuationToken);
+            headers.add(nextLinkHeader);
             nextLink.setHeaders(headers);
             nextLink.setMethod("GET");
 
