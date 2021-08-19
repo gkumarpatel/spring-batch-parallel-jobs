@@ -4,9 +4,12 @@ reconcillation:
   oneTime:
     fileName: "MicrosoftRecncilationFIles/OneTimeInvoiceLineItems.csv"
 mock:
-  numberOfLineItems: 1000
-  chunkSize: 100
+  numberOfLineItems: 100
+  chunkSize: 10
 
+apiResponsePath:
+  DailyRated: "/Users/prashantchauhan/Desktop/DailyRated"
+  OneTime: "/Users/prashantchauhan/Desktop/OneTime"
   
 spring:
   datasource:

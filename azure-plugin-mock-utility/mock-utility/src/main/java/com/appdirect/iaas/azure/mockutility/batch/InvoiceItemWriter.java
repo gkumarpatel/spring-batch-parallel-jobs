@@ -1,6 +1,6 @@
 package com.appdirect.iaas.azure.mockutility.batch;
 
-import java.io.File;
+import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -50,6 +50,12 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
 
     @Value("${mock.numberOfLineItems}")
     private Long numberOfLineItems;
+    
+    @Value("${apiResponsePath.OneTime}")
+    private String oneTimeResponsePath;
+    
+    @Value("${apiResponsePath.DailyRated}")
+    private String dailyRatedResponsePath;
 
     @PostConstruct
     public void setUp() {
@@ -82,11 +88,24 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
             }
             oneTimeInvoiceLineItemResponse.setContinuationToken(continuationToken);
             oneTimeInvoiceLineItemResponse.setLinks(getLinks(isLastResponse, continuationToken, "billinglineitems", ((OneTimeInvoiceLineItem) invoiceLineItem).getInvoiceNumber(), String.valueOf(items.size())));
-
-            String oneTimeFolderPath =  System.getProperty("user.home").concat("/OneTime");
-            String jsonPath = "OneTimeResponse_".concat(String.valueOf(dailyRatedJsonFileCount++)).concat(".json");
-            gson.toJson(oneTimeInvoiceLineItemResponse, new FileWriter(new File(oneTimeFolderPath, jsonPath)));
-
+            
+            String jsonFilePathName = oneTimeResponsePath.concat("/OneTimeResponse_").concat(String.valueOf(oneTimeJsonFileCount++)).concat(".json");
+            String jsonResponse = gson.toJson(oneTimeInvoiceLineItemResponse);
+            
+            BufferedWriter bufferedWriter = null;
+            try {
+                FileWriter writer = new FileWriter(jsonFilePathName);
+                bufferedWriter = new BufferedWriter(writer);
+                bufferedWriter.write(jsonResponse);
+                bufferedWriter.close();
+            } catch (Exception e) {
+                throw e;
+            } finally {
+                if (bufferedWriter != null) {
+                    bufferedWriter.close();
+                }
+            }
+            
         } else {
 
             DailyRatedUsageItemsResponse dailyRatedUsageItemsResponse = new DailyRatedUsageItemsResponse();
@@ -104,9 +123,22 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
             dailyRatedUsageItemsResponse.setContinuationToken(continuationToken);
             dailyRatedUsageItemsResponse.setLinks(getLinks(isLastResponse, continuationToken, "usagelineitems", ((DailyRatedUsageLineItem) invoiceLineItem).getInvoiceNumber(), String.valueOf(items.size())));
 
-            String dailyRatedFolderPath =  System.getProperty("user.home").concat("/DailyRated");
-            String jsonPath = "DailyRatedResponse_".concat(String.valueOf(dailyRatedJsonFileCount++)).concat(".json");
-            gson.toJson(dailyRatedUsageItemsResponse, new FileWriter(new File(dailyRatedFolderPath, jsonPath)));
+            String jsonFilePathName = dailyRatedResponsePath.concat("/DailyRated_").concat(String.valueOf(dailyRatedJsonFileCount++)).concat(".json");
+            String jsonResponse = gson.toJson(dailyRatedUsageItemsResponse);
+            
+            BufferedWriter bufferedWriter = null;
+            try {
+                FileWriter writer = new FileWriter(jsonFilePathName);
+                bufferedWriter = new BufferedWriter(writer);
+                bufferedWriter.write(jsonResponse);
+                bufferedWriter.close();
+            } catch (Exception e) {
+                throw e;
+            } finally {
+                if (bufferedWriter != null) {
+                    bufferedWriter.close();
+                }
+            }
         }
 
         lineItemsToWrite -= items.size();
