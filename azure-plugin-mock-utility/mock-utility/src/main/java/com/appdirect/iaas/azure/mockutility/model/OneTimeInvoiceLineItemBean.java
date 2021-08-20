@@ -1,11 +1,12 @@
 package com.appdirect.iaas.azure.mockutility.model;
 
-import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Map;
 
 import lombok.Data;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.microsoft.store.partnercenter.models.invoices.BillingProvider;
 import com.microsoft.store.partnercenter.models.invoices.InvoiceLineItemType;
 
@@ -19,8 +20,10 @@ public class OneTimeInvoiceLineItemBean {
     private String availabilityId;
     private String billingFrequency;
     private double billableQuantity;
-    private LocalDateTime chargeEndDate;
-    private LocalDateTime chargeStarDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm:ss'Z'")
+    private Date chargeEndDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm:ss'Z'")
+    private Date chargeStarDate;
     private String chargeType;
     private String currency;
     private String customerCountry;
@@ -31,11 +34,13 @@ public class OneTimeInvoiceLineItemBean {
     private String invoiceNumber;
     private String meterDescription;
     private String mpnId;
-    private LocalDateTime orderDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm:ss'Z'")
+    private Date orderDate;
     private String orderId;
     private String partnerId;
     private double pcToBCExchangeRate;
-    private LocalDateTime pcToBCExchangeRateDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm:ss'Z'")
+    private Date pcToBCExchangeRateDate;
     private String priceAdjustmentDescription;
     private String pricingCurrency;
     private String productId;

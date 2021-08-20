@@ -1,23 +1,31 @@
 package com.appdirect.iaas.azure.mockutility.model;
 
-import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Map;
 
 import lombok.Data;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.microsoft.store.partnercenter.models.invoices.BillingProvider;
 import com.microsoft.store.partnercenter.models.invoices.InvoiceLineItemType;
 
 @Data
+
+/**
+ * Contains all the fields that are not part of DailyRatedUsageLineItem but not present in 
+ * microsoft partner center api response
+ */
 public class DailyRatedUsageLineItemBean {
     private Map<String, Object> additionalInfo;
     private String availabilityId;
     private String billingCurrency;
     private double billingPreTaxTotal;
     private String customerDomainName;
-    private LocalDateTime chargeEndDate;
-    private LocalDateTime chargeStartDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm:ss'Z'")
+    private Date chargeEndDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm:ss'Z'")
+    private Date chargeStartDate;
     private String chargeType;
     private String consumedService;
     private String customerCountry;
@@ -37,7 +45,8 @@ public class DailyRatedUsageLineItemBean {
     private String partnerId;
     private String partnerName;
     private double pcToBCExchangeRate;
-    private LocalDateTime pcToBCExchangeRateDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm:ss'Z'")
+    private Date pcToBCExchangeRateDate;
     private String pricingCurrency;
     private double pricingPreTaxTotal;
     private String productId;
@@ -61,7 +70,8 @@ public class DailyRatedUsageLineItemBean {
     private String unitOfMeasure;
     private double unitPrice;
     private String unitType;
-    private LocalDateTime usageDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm:ss'Z'")
+    private Date usageDate;
     private String creditType;
     private String rateOfCredit;
     private InvoiceLineItemType invoiceLineItemType = InvoiceLineItemType.USAGELINEITEMS;

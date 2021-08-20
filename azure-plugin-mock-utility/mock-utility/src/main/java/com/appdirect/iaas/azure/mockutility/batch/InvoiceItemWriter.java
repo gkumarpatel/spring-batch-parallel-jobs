@@ -29,7 +29,8 @@ import com.appdirect.iaas.azure.mockutility.model.OneTimeInvoiceLineItemBean;
 import com.appdirect.iaas.azure.mockutility.model.OneTimeInvoiceLineItemResponse;
 import com.appdirect.iaas.azure.mockutility.model.ResourceLink;
 import com.appdirect.iaas.azure.mockutility.model.ResourceLinkHeader;
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.microsoft.store.partnercenter.models.invoices.DailyRatedUsageLineItem;
 import com.microsoft.store.partnercenter.models.invoices.InvoiceLineItem;
 import com.microsoft.store.partnercenter.models.invoices.OneTimeInvoiceLineItem;
@@ -77,8 +78,9 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
 
     @Override
     public void write(List<? extends InvoiceLineItem> items) throws Exception {
-        Gson gson = new Gson();
-
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        
         boolean isLastResponse = false;
 
         if (lineItemsToWrite <= (2 * items.size())) {
@@ -93,7 +95,7 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
             List<OneTimeInvoiceLineItemBean> oneTimeInvoiceLineItemBeans = items.stream().map(item -> oneTimeInvoiceLineItemMapper.mapFromOneTimeInvoiceLineItem((OneTimeInvoiceLineItem) item)
             ).collect(Collectors.toList());
 
-            oneTimeInvoiceLineItemResponse.setList(oneTimeInvoiceLineItemBeans);
+            oneTimeInvoiceLineItemResponse.setItems(oneTimeInvoiceLineItemBeans);
             oneTimeInvoiceLineItemResponse.setTotalCount(oneTimeInvoiceLineItemBeans.size());
 
             continuationToken = generateContinuationToken(isLastResponse);
@@ -101,7 +103,7 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
             oneTimeInvoiceLineItemResponse.setLinks(getLinks(isLastResponse, continuationToken, USAGE_TYPE_ONE_TIME, ((OneTimeInvoiceLineItem) invoiceLineItem).getInvoiceNumber(), String.valueOf(items.size())));
 
             String jsonFilePathName = oneTimeResponsePath.concat("/").concat(ONE_TIME_JSON_RESPONSE_FILE).concat(String.valueOf(oneTimeJsonFileCount++)).concat(".json");
-            String jsonResponse = gson.toJson(oneTimeInvoiceLineItemResponse);
+            String jsonResponse = objectMapper.writeValueAsString(oneTimeInvoiceLineItemResponse);
 
             writeResponseToJsonFile(jsonFilePathName, jsonResponse);
 
@@ -112,7 +114,7 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
 
             List<DailyRatedUsageLineItemBean> dailyRatedUsageLineItemBeans = items.stream().map(item -> dailyRatedUsageLineItemMapper.mapFromDailyRatedInvoiceLineItem((DailyRatedUsageLineItem) item))
                     .collect(Collectors.toList());
-            dailyRatedUsageItemsResponse.setList(dailyRatedUsageLineItemBeans);
+            dailyRatedUsageItemsResponse.setItems(dailyRatedUsageLineItemBeans);
             dailyRatedUsageItemsResponse.setTotalCount(dailyRatedUsageLineItemBeans.size());
 
             continuationToken = generateContinuationToken(isLastResponse);
@@ -121,7 +123,7 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
             dailyRatedUsageItemsResponse.setLinks(getLinks(isLastResponse, continuationToken, USAGE_TYPE_DAILY, ((DailyRatedUsageLineItem) invoiceLineItem).getInvoiceNumber(), String.valueOf(items.size())));
 
             String jsonFilePathName = dailyRatedResponsePath.concat("/").concat(DAILY_RATED_JSON_REPONSE_FILE).concat(String.valueOf(dailyRatedJsonFileCount++)).concat(JSON_FILE_EXTENTION);
-            String jsonResponse = gson.toJson(dailyRatedUsageItemsResponse);
+            String jsonResponse = objectMapper.writeValueAsString(dailyRatedUsageItemsResponse);
 
             writeResponseToJsonFile(jsonFilePathName, jsonResponse);
         }
