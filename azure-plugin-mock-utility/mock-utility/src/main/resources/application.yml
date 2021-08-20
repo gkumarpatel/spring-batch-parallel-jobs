@@ -17,6 +17,14 @@ responseFolder:
     mappingPath: "/OneTime/mappings/"
 
 
+wireMock:
+  response:
+    bodyFileNamePrefix: "lineitem"
+  delayDistribution:
+    type: "lognormal"
+    median: 500
+    sigma: 0.4
+
 spring:
   datasource:
     driver-class-name: org.h2.Driver

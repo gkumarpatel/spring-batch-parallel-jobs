@@ -29,6 +29,10 @@ import com.appdirect.iaas.azure.mockutility.model.OneTimeInvoiceLineItemBean;
 import com.appdirect.iaas.azure.mockutility.model.OneTimeInvoiceLineItemResponse;
 import com.appdirect.iaas.azure.mockutility.model.ResourceLink;
 import com.appdirect.iaas.azure.mockutility.model.ResourceLinkHeader;
+import com.appdirect.iaas.azure.mockutility.model.WireMockMapping;
+import com.appdirect.iaas.azure.mockutility.model.WireMockMappingDelayDistribution;
+import com.appdirect.iaas.azure.mockutility.model.WireMockMappingRequest;
+import com.appdirect.iaas.azure.mockutility.model.WireMockMappingResponse;
 import com.appdirect.iaas.azure.mockutility.util.FileUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -47,6 +51,8 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
     public static final String USAGE_TYPE_ONE_TIME = "billinglineitems";
     public static final String ONE_TIME_JSON_RESPONSE_FILE = "OneTimeResponse_";
     public static final String DAILY_RATED_JSON_REPONSE_FILE = "DailyRated_";
+    public static final String ONE_TIME_MAPPING_JSON_RESPONSE_FILE = "OneTimeMapping_";
+    public static final String DAILY_RATED_MAPPING_JSON_REPONSE_FILE = "DailyMapping_";
     public static final String JSON_FILE_EXTENTION = ".json";
     public static final String MS_CONTINUATION_TOKEN = "MS-ContinuationToken";
     public static final String HTTP_METHOD_GET = "GET";
@@ -72,20 +78,35 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
 
     @Value("${responseFolder.dailyRatedPath.filesPath}")
     public String dailyRatedFilesPath;
+
     @Value("${responseFolder.OneTimePath.filesPath}")
     public String oneTimeFilesPath;
+
     @Value("${responseFolder.dailyRatedPath.mappingPath}")
     public String dailyRatedMappingsPath;
+
     @Value("${responseFolder.OneTimePath.mappingPath}")
     public String oneTimeMappingsPath;
 
     @Value("${responseFolder.mainFolderPath}")
     private String responseOutputPath;
 
+    @Value("${wireMock.delayDistribution.type}")
+    private String delayDetributionType;
+
+    @Value("${wireMock.delayDistribution.median}")
+    private Integer delayDetributionMedian;
+
+    @Value("${wireMock.delayDistribution.sigma}")
+    private Float delayDetributionSigma;
+
+    @Value("${wireMock.response.bodyFileNamePrefix}")
+    private String bodyFileNamePrefix;
+
     @PostConstruct
     public void setUp() {
         lineItemsToWrite = numberOfLineItems;
-        
+
         String totalInvoices = numberOfLineItems.toString();
         oneTimeInvoiceFilesPath = FileUtil.generateFolders(oneTimeFilesPath, responseOutputPath, totalInvoices).toString();
         oneTimeMappingFilesPath = FileUtil.generateFolders(oneTimeMappingsPath, responseOutputPath, totalInvoices).toString();
@@ -106,7 +127,10 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
         }
         InvoiceLineItem invoiceLineItem = items.get(0);
 
+        String pageSize = String.valueOf(items.size());
+        
         if (invoiceLineItem instanceof OneTimeInvoiceLineItem) {
+            String invoiceNumber = ((OneTimeInvoiceLineItem) invoiceLineItem).getInvoiceNumber();
             OneTimeInvoiceLineItemResponse oneTimeInvoiceLineItemResponse = new OneTimeInvoiceLineItemResponse();
             String continuationToken = null;
 
@@ -118,15 +142,41 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
 
             continuationToken = generateContinuationToken(isLastResponse);
             oneTimeInvoiceLineItemResponse.setContinuationToken(continuationToken);
-            oneTimeInvoiceLineItemResponse.setLinks(getLinks(isLastResponse, continuationToken, USAGE_TYPE_ONE_TIME, ((OneTimeInvoiceLineItem) invoiceLineItem).getInvoiceNumber(), String.valueOf(items.size())));
+          
+            oneTimeInvoiceLineItemResponse.setLinks(getLinks(isLastResponse, continuationToken, USAGE_TYPE_ONE_TIME, invoiceNumber, pageSize));
 
-            String jsonFilePathName = oneTimeInvoiceFilesPath.concat("/").concat(ONE_TIME_JSON_RESPONSE_FILE).concat(String.valueOf(oneTimeJsonFileCount++)).concat(".json");
-            String jsonResponse = objectMapper.writeValueAsString(oneTimeInvoiceLineItemResponse);
+            String oneTimeResponseFileName = ONE_TIME_JSON_RESPONSE_FILE.concat(String.valueOf(oneTimeJsonFileCount)).concat(".json");
+            String invoiceLineJsonFilePathName = oneTimeInvoiceFilesPath.concat("/").concat(oneTimeResponseFileName);
+            String invoiceFileJsonResponse = objectMapper.writeValueAsString(oneTimeInvoiceLineItemResponse);
 
-            writeResponseToJsonFile(jsonFilePathName, jsonResponse);
+            WireMockMappingDelayDistribution delayDistribution = new WireMockMappingDelayDistribution();
+            delayDistribution.setMedian(delayDetributionMedian);
+            delayDistribution.setSigma(delayDetributionSigma);
+            delayDistribution.setType(delayDetributionType);
+
+            WireMockMappingResponse wireMockMappingResponse = new WireMockMappingResponse();
+            wireMockMappingResponse.setDelayDistribution(delayDistribution);
+            String bodyFileName = bodyFileNamePrefix.concat("/").concat(oneTimeResponseFileName);
+            wireMockMappingResponse.setBodyFileName(bodyFileName);
+            
+            StringSubstitutor stringSubstitutor = getStringSubstitutor(invoiceNumber, pageSize, USAGE_TYPE_ONE_TIME);
+            String requestUrl = stringSubstitutor.replace(selfResourceLinkURITemplate);
+
+            WireMockMappingRequest wireMockMappingRequest = new WireMockMappingRequest();
+            wireMockMappingRequest.setUrl(requestUrl);
+
+            WireMockMapping wireMockMapping = new WireMockMapping();
+            wireMockMapping.setRequest(wireMockMappingRequest);
+            wireMockMapping.setResponse(wireMockMappingResponse);
+            
+            String mappingFileJsonResponse = objectMapper.writeValueAsString(wireMockMapping);
+            String mappingJsonFilePath = oneTimeMappingFilesPath.concat("/").concat(ONE_TIME_MAPPING_JSON_RESPONSE_FILE).concat(String.valueOf(oneTimeJsonFileCount++)).concat(JSON_FILE_EXTENTION);
+            
+            writeResponseToJsonFile(mappingJsonFilePath,mappingFileJsonResponse);
+            writeResponseToJsonFile(invoiceLineJsonFilePathName, invoiceFileJsonResponse);
 
         } else {
-
+            String invoiceNumber = ((DailyRatedUsageLineItem) invoiceLineItem).getInvoiceNumber();
             DailyRatedUsageItemsResponse dailyRatedUsageItemsResponse = new DailyRatedUsageItemsResponse();
             String continuationToken = null;
 
@@ -138,12 +188,39 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
             continuationToken = generateContinuationToken(isLastResponse);
 
             dailyRatedUsageItemsResponse.setContinuationToken(continuationToken);
-            dailyRatedUsageItemsResponse.setLinks(getLinks(isLastResponse, continuationToken, USAGE_TYPE_DAILY, ((DailyRatedUsageLineItem) invoiceLineItem).getInvoiceNumber(), String.valueOf(items.size())));
+            
+            dailyRatedUsageItemsResponse.setLinks(getLinks(isLastResponse, continuationToken, USAGE_TYPE_DAILY, invoiceNumber, pageSize));
 
-            String jsonFilePathName = dailyRatedInvoiceFilesPath.concat("/").concat(DAILY_RATED_JSON_REPONSE_FILE).concat(String.valueOf(dailyRatedJsonFileCount++)).concat(JSON_FILE_EXTENTION);
-            String jsonResponse = objectMapper.writeValueAsString(dailyRatedUsageItemsResponse);
+            String dailyRatedResponseFileName  = DAILY_RATED_JSON_REPONSE_FILE.concat(String.valueOf(dailyRatedJsonFileCount)).concat(JSON_FILE_EXTENTION);
+            String invoiceLineJsonFilePathName = dailyRatedInvoiceFilesPath.concat("/").concat(dailyRatedResponseFileName);
+            
+            String invoiceFileJsonResponse = objectMapper.writeValueAsString(dailyRatedUsageItemsResponse);
+            
+            WireMockMappingDelayDistribution delayDistribution = new WireMockMappingDelayDistribution();
+            delayDistribution.setMedian(delayDetributionMedian);
+            delayDistribution.setSigma(delayDetributionSigma);
+            delayDistribution.setType(delayDetributionType);
 
-            writeResponseToJsonFile(jsonFilePathName, jsonResponse);
+            WireMockMappingResponse wireMockMappingResponse = new WireMockMappingResponse();
+            wireMockMappingResponse.setDelayDistribution(delayDistribution);
+            String bodyFileName = bodyFileNamePrefix.concat("/").concat(dailyRatedResponseFileName);
+            wireMockMappingResponse.setBodyFileName(bodyFileName);
+
+            StringSubstitutor stringSubstitutor = getStringSubstitutor(invoiceNumber, pageSize, USAGE_TYPE_DAILY);
+            String requestUrl = stringSubstitutor.replace(selfResourceLinkURITemplate);
+
+            WireMockMappingRequest wireMockMappingRequest = new WireMockMappingRequest();
+            wireMockMappingRequest.setUrl(requestUrl);
+
+            WireMockMapping wireMockMapping = new WireMockMapping();
+            wireMockMapping.setRequest(wireMockMappingRequest);
+            wireMockMapping.setResponse(wireMockMappingResponse);
+            
+            String mappingFileJsonResponse = objectMapper.writeValueAsString(wireMockMapping);
+            String mappingJsonFilePath = dailyRatedMappingFilesPath.concat("/").concat(DAILY_RATED_MAPPING_JSON_REPONSE_FILE).concat(String.valueOf(dailyRatedJsonFileCount++)).concat(JSON_FILE_EXTENTION);
+            
+            writeResponseToJsonFile(invoiceLineJsonFilePathName, invoiceFileJsonResponse);
+            writeResponseToJsonFile(mappingJsonFilePath,mappingFileJsonResponse);
         }
 
         lineItemsToWrite -= items.size();
@@ -174,14 +251,10 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
     }
 
     private Map<String, ResourceLink> getLinks(boolean isLastResponse, String continuationToken, String usageType, String invoiceId, String pageSize) {
+
+        StringSubstitutor stringSubstitutor = getStringSubstitutor(invoiceId, pageSize, usageType);
         Map<String, ResourceLink> links = new HashMap<>();
-        Map<String, String> templateTokens = new HashMap<>();
-        templateTokens.put(INVOICE_ID_TOKEN, invoiceId);
-        templateTokens.put(SIZE_TOKEN, pageSize);
-        templateTokens.put(USAGE_TYPE_TOKEN, usageType);
-
-        StringSubstitutor stringSubstitutor = new StringSubstitutor(templateTokens);
-
+        
         if (!isLastResponse) {
             links.put(NEXT_RESOURCE_LINK, generateNextResourceLink(continuationToken, stringSubstitutor));
         }
@@ -189,6 +262,16 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
         links.put(SELF_RESOURCE_LINK, generateSelfLink(stringSubstitutor));
 
         return links;
+    }
+
+    private StringSubstitutor getStringSubstitutor(String invoiceId, String pageSize, String usageType) {
+
+        Map<String, String> templateTokens = new HashMap<>();
+        templateTokens.put(INVOICE_ID_TOKEN, invoiceId);
+        templateTokens.put(SIZE_TOKEN, pageSize);
+        templateTokens.put(USAGE_TYPE_TOKEN, usageType);
+
+        return new StringSubstitutor(templateTokens);
     }
 
     private ResourceLink generateSelfLink(StringSubstitutor stringSubstitutor) {
