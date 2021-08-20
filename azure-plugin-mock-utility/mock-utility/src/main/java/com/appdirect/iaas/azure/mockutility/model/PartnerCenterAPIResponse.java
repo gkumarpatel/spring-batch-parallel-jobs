@@ -1,5 +1,6 @@
 package com.appdirect.iaas.azure.mockutility.model;
 
+import java.util.Collections;
 import java.util.Map;
 
 import lombok.Data;
@@ -12,5 +13,5 @@ public class PartnerCenterAPIResponse {
     private String continuationToken;
     private Integer totalCount;
     private Map<String, ResourceLink> links;
-    private String objectType = "Collection";
+    private Map attributes = Collections.singletonMap("objectType", "Collection");
 }

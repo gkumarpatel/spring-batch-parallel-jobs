@@ -6,5 +6,5 @@ import lombok.Data;
 
 @Data
 public class DailyRatedUsageItemsResponse extends PartnerCenterAPIResponse {
-    private List<DailyRatedUsageLineItemBean> list;
+    private List<DailyRatedUsageLineItemBean> items;
 }
