@@ -1,0 +1,23 @@
+reconcillation:
+  dailyRated:
+    fileName: "MicrosoftRecncilationFIles/DailyRatedusageLineItems.csv"
+  oneTime:
+    fileName: "MicrosoftRecncilationFIles/OneTimeInvoiceLineItems.csv"
+mock:
+  numberOfLineItems: 100
+  chunkSize: 10
+
+apiResponsePath:
+  DailyRated: "/Users/prashantchauhan/Desktop/DailyRated"
+  OneTime: "/Users/prashantchauhan/Desktop/OneTime"
+  
+spring:
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:mockgenerator
+    username: sa
+    password: password
+    
+  sql:
+    init:
+      platform: org.hibernate.dialect.H2Dialect

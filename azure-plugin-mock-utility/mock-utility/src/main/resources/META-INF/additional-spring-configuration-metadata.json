@@ -1,0 +1,24 @@
+{
+  "properties": [
+    {
+      "name": "reconcillation.dailyRated.fileName",
+      "type": "java.lang.String",
+      "description": "Daily rated line items reconcillation file name"
+    },
+    {
+      "name": "reconcillation.oneTime.fileName",
+      "type": "java.lang.String",
+      "description": "One Time line items reconcillation file name."
+    },
+    {
+      "name": "mock.numberOfLineItems",
+      "type": "java.lang.Integer",
+      "description": "Total number of mock line items to be generated"
+    },
+    {
+      "name": "mock.chunkSize",
+      "type": "java.lang.Integer",
+      "description": "Total number of line items in one JSON response"
+    }
+  ]
+}
