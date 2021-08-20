@@ -11,6 +11,8 @@ apiResponsePath:
   DailyRated: "/Users/prashantchauhan/Desktop/DailyRated"
   OneTime: "/Users/prashantchauhan/Desktop/OneTime"
   
+responseFolder: "/Users/prashantchauhan/Desktop/Target"
+  
 spring:
   datasource:
     driver-class-name: org.h2.Driver
