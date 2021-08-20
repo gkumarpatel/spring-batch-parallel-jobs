@@ -3,7 +3,6 @@ package com.appdirect.iaas.azure.mockutility.config;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -31,10 +30,9 @@ public class JobConfig {
     private Integer chunkSize;
     
     @Bean
-    public Job job(@Qualifier("generateMocks") Step step1, JobExecutionListener jobExecutionListener) {
+    public Job job(@Qualifier("generateMocks") Step step1) {
         return jobs.get("myJob")
                 .incrementer(new RunIdIncrementer())
-                .listener(jobExecutionListener)
                 .start(step1).build();
     }
 

@@ -29,6 +29,7 @@ import com.appdirect.iaas.azure.mockutility.model.OneTimeInvoiceLineItemBean;
 import com.appdirect.iaas.azure.mockutility.model.OneTimeInvoiceLineItemResponse;
 import com.appdirect.iaas.azure.mockutility.model.ResourceLink;
 import com.appdirect.iaas.azure.mockutility.model.ResourceLinkHeader;
+import com.appdirect.iaas.azure.mockutility.util.FileUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.microsoft.store.partnercenter.models.invoices.DailyRatedUsageLineItem;
@@ -58,6 +59,10 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
     private static Long lineItemsToWrite;
     private static int oneTimeJsonFileCount = 1;
     private static int dailyRatedJsonFileCount = 1;
+    private static String oneTimeInvoiceFilesPath;
+    private static String oneTimeMappingFilesPath;
+    private static String dailyRatedInvoiceFilesPath;
+    private static String dailyRatedMappingFilesPath;
 
     private final OneTimeInvoiceLineItemMapper oneTimeInvoiceLineItemMapper;
     private final DailyRatedUsageLineItemMapper dailyRatedUsageLineItemMapper;
@@ -65,22 +70,35 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
     @Value("${mock.numberOfLineItems}")
     private Long numberOfLineItems;
 
-    @Value("${apiResponsePath.OneTime}")
-    private String oneTimeResponsePath;
+    @Value("${responseFolder.dailyRatedPath.filesPath}")
+    public String dailyRatedFilesPath;
+    @Value("${responseFolder.OneTimePath.filesPath}")
+    public String oneTimeFilesPath;
+    @Value("${responseFolder.dailyRatedPath.mappingPath}")
+    public String dailyRatedMappingsPath;
+    @Value("${responseFolder.OneTimePath.mappingPath}")
+    public String oneTimeMappingsPath;
 
-    @Value("${apiResponsePath.DailyRated}")
-    private String dailyRatedResponsePath;
+    @Value("${responseFolder.mainFolderPath}")
+    private String responseOutputPath;
 
     @PostConstruct
     public void setUp() {
         lineItemsToWrite = numberOfLineItems;
+        
+        String totalInvoices = numberOfLineItems.toString();
+        oneTimeInvoiceFilesPath = FileUtil.generateFolders(oneTimeFilesPath, responseOutputPath, totalInvoices).toString();
+        oneTimeMappingFilesPath = FileUtil.generateFolders(oneTimeMappingsPath, responseOutputPath, totalInvoices).toString();
+        dailyRatedInvoiceFilesPath = FileUtil.generateFolders(dailyRatedFilesPath, responseOutputPath, totalInvoices).toString();
+        dailyRatedMappingFilesPath = FileUtil.generateFolders(dailyRatedMappingsPath, responseOutputPath, totalInvoices).toString();
+
     }
 
     @Override
     public void write(List<? extends InvoiceLineItem> items) throws Exception {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-        
+
         boolean isLastResponse = false;
 
         if (lineItemsToWrite <= (2 * items.size())) {
@@ -102,7 +120,7 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
             oneTimeInvoiceLineItemResponse.setContinuationToken(continuationToken);
             oneTimeInvoiceLineItemResponse.setLinks(getLinks(isLastResponse, continuationToken, USAGE_TYPE_ONE_TIME, ((OneTimeInvoiceLineItem) invoiceLineItem).getInvoiceNumber(), String.valueOf(items.size())));
 
-            String jsonFilePathName = oneTimeResponsePath.concat("/").concat(ONE_TIME_JSON_RESPONSE_FILE).concat(String.valueOf(oneTimeJsonFileCount++)).concat(".json");
+            String jsonFilePathName = oneTimeInvoiceFilesPath.concat("/").concat(ONE_TIME_JSON_RESPONSE_FILE).concat(String.valueOf(oneTimeJsonFileCount++)).concat(".json");
             String jsonResponse = objectMapper.writeValueAsString(oneTimeInvoiceLineItemResponse);
 
             writeResponseToJsonFile(jsonFilePathName, jsonResponse);
@@ -122,7 +140,7 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
             dailyRatedUsageItemsResponse.setContinuationToken(continuationToken);
             dailyRatedUsageItemsResponse.setLinks(getLinks(isLastResponse, continuationToken, USAGE_TYPE_DAILY, ((DailyRatedUsageLineItem) invoiceLineItem).getInvoiceNumber(), String.valueOf(items.size())));
 
-            String jsonFilePathName = dailyRatedResponsePath.concat("/").concat(DAILY_RATED_JSON_REPONSE_FILE).concat(String.valueOf(dailyRatedJsonFileCount++)).concat(JSON_FILE_EXTENTION);
+            String jsonFilePathName = dailyRatedInvoiceFilesPath.concat("/").concat(DAILY_RATED_JSON_REPONSE_FILE).concat(String.valueOf(dailyRatedJsonFileCount++)).concat(JSON_FILE_EXTENTION);
             String jsonResponse = objectMapper.writeValueAsString(dailyRatedUsageItemsResponse);
 
             writeResponseToJsonFile(jsonFilePathName, jsonResponse);
@@ -165,7 +183,7 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
         StringSubstitutor stringSubstitutor = new StringSubstitutor(templateTokens);
 
         if (!isLastResponse) {
-            links.put(NEXT_RESOURCE_LINK,  generateNextResourceLink(continuationToken, stringSubstitutor));
+            links.put(NEXT_RESOURCE_LINK, generateNextResourceLink(continuationToken, stringSubstitutor));
         }
 
         links.put(SELF_RESOURCE_LINK, generateSelfLink(stringSubstitutor));
