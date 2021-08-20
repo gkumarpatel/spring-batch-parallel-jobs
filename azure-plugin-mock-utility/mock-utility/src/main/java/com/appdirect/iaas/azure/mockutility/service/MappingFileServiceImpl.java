@@ -33,10 +33,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Slf4j
 @Service
 public class MappingFileServiceImpl implements MappingFileService {
-    
+
     private static String oneTimeMappingFilesPath;
     private static String dailyRatedMappingFilesPath;
-    
+
     @Value("${wireMock.delayDistribution.type}")
     private String delayDetributionType;
 
@@ -60,7 +60,7 @@ public class MappingFileServiceImpl implements MappingFileService {
 
     @Value("${responseFolder.mainFolderPath}")
     private String responseOutputPath;
-    
+
     @PostConstruct
     public void setUp() {
 
@@ -68,9 +68,9 @@ public class MappingFileServiceImpl implements MappingFileService {
         oneTimeMappingFilesPath = FileUtil.generateFolders(oneTimeMappingsPath, responseOutputPath, totalInvoices).toString();
         dailyRatedMappingFilesPath = FileUtil.generateFolders(dailyRatedMappingsPath, responseOutputPath, totalInvoices).toString();
     }
-    
+
     @Override
-    public void generateOneTimeInvoiceMappingFile(ObjectMapper objectMapper, int oneTimeJsonFileCount, String invoiceId, String pageSize, boolean isLastResponse) throws IOException {
+    public void generateOneTimeInvoiceMappingFile(ObjectMapper objectMapper, int oneTimeJsonFileCount, String invoiceId, String pageSize, boolean isFirstResponse) throws IOException {
 
         String oneTimeResponseFileName = ONE_TIME_JSON_RESPONSE_FILE.concat(String.valueOf(oneTimeJsonFileCount)).concat(".json");
 
@@ -85,7 +85,7 @@ public class MappingFileServiceImpl implements MappingFileService {
         wireMockMappingResponse.setBodyFileName(bodyFileName);
 
         StringSubstitutor stringSubstitutor = getStringSubstitutor(invoiceId, pageSize, USAGE_TYPE_ONE_TIME);
-        String requestUrl = V1_API_PREFIX.concat(getRequestUrl(stringSubstitutor, isLastResponse));
+        String requestUrl = V1_API_PREFIX.concat(getRequestUrl(stringSubstitutor, isFirstResponse));
 
         WireMockMappingRequest wireMockMappingRequest = new WireMockMappingRequest();
         wireMockMappingRequest.setUrl(requestUrl);
@@ -101,7 +101,7 @@ public class MappingFileServiceImpl implements MappingFileService {
     }
 
     @Override
-    public void generateDailyRatedUsageMappingFile(ObjectMapper objectMapper, int dailyRatedJsonFileCount, String invoiceId, String pageSize, boolean isLastResponse) throws IOException {
+    public void generateDailyRatedUsageMappingFile(ObjectMapper objectMapper, int dailyRatedJsonFileCount, String invoiceId, String pageSize, boolean isFirstResponse) throws IOException {
 
         String dailyRatedResponseFileName = DAILY_RATED_JSON_REPONSE_FILE.concat(String.valueOf(dailyRatedJsonFileCount)).concat(JSON_FILE_EXTENTION);
 
@@ -117,7 +117,7 @@ public class MappingFileServiceImpl implements MappingFileService {
         wireMockMappingResponse.setBodyFileName(bodyFileName);
 
         StringSubstitutor stringSubstitutor = getStringSubstitutor(invoiceId, pageSize, USAGE_TYPE_DAILY);
-        String requestUrl = V1_API_PREFIX.concat(getRequestUrl(stringSubstitutor, isLastResponse));
+        String requestUrl = V1_API_PREFIX.concat(getRequestUrl(stringSubstitutor, isFirstResponse));
 
         WireMockMappingRequest wireMockMappingRequest = new WireMockMappingRequest();
         wireMockMappingRequest.setUrl(requestUrl);
@@ -131,12 +131,12 @@ public class MappingFileServiceImpl implements MappingFileService {
 
         writeResponseToJsonFile(mappingJsonFilePath, mappingFileJsonResponse);
     }
-    
-    private String getRequestUrl(StringSubstitutor stringSubstitutor, boolean isLastResponse){
-        if(isLastResponse){
-            return stringSubstitutor.replace(nextResourceLinkURITemplate);
-        }else {
+
+    private String getRequestUrl(StringSubstitutor stringSubstitutor, boolean isFirstResponse) {
+        if (isFirstResponse) {
             return stringSubstitutor.replace(selfResourceLinkURITemplate);
+        } else {
+            return stringSubstitutor.replace(nextResourceLinkURITemplate);
         }
     }
 }

@@ -35,9 +35,6 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
     @Value("${mock.numberOfLineItems}")
     private Long numberOfLineItems;
 
-    @Value("${responseFolder.mainFolderPath}")
-    private String responseOutputPath;
-
     @Value("${responseFolder.dailyRatedPath.mappingPath}")
     public String dailyRatedMappingsPath;
 
@@ -48,26 +45,24 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
     @PostConstruct
     public void setUp() {
         lineItemsToWrite = numberOfLineItems;
-      }
+    }
 
     @Override
     public void write(List<? extends InvoiceLineItem> items) throws Exception {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
-        boolean isLastResponse = isLastResponse(items);
-
         InvoiceLineItem invoiceLineItem = items.get(0);
 
         String pageSize = String.valueOf(items.size());
 
         if (invoiceLineItem instanceof OneTimeInvoiceLineItem) {
-            invoiceFileService.generateOneTimeInvoiceResponseFile(objectMapper, isLastResponse, (List<InvoiceLineItem>) items, oneTimeJsonFileCount);
-            mappingFileService.generateOneTimeInvoiceMappingFile(objectMapper, oneTimeJsonFileCount, ((OneTimeInvoiceLineItem) invoiceLineItem).getInvoiceNumber(), pageSize, isLastResponse);
+            invoiceFileService.generateOneTimeInvoiceResponseFile(objectMapper, isLastResponse(items), (List<InvoiceLineItem>) items, oneTimeJsonFileCount);
+            mappingFileService.generateOneTimeInvoiceMappingFile(objectMapper, oneTimeJsonFileCount, ((OneTimeInvoiceLineItem) invoiceLineItem).getInvoiceNumber(), pageSize, isFirstResponse(items));
             oneTimeJsonFileCount++;
         } else {
-            invoiceFileService.generateDailyRatedUsageResponseFile(objectMapper, isLastResponse, (List<InvoiceLineItem>) items, dailyRatedJsonFileCount);
-            mappingFileService.generateDailyRatedUsageMappingFile(objectMapper, dailyRatedJsonFileCount, ((DailyRatedUsageLineItem) invoiceLineItem).getInvoiceNumber(), pageSize, isLastResponse);
+            invoiceFileService.generateDailyRatedUsageResponseFile(objectMapper, isLastResponse(items), (List<InvoiceLineItem>) items, dailyRatedJsonFileCount);
+            mappingFileService.generateDailyRatedUsageMappingFile(objectMapper, dailyRatedJsonFileCount, ((DailyRatedUsageLineItem) invoiceLineItem).getInvoiceNumber(), pageSize, isFirstResponse(items));
             dailyRatedJsonFileCount++;
         }
 
@@ -81,5 +76,14 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
             isLastResponse = true;
         }
         return isLastResponse;
+    }
+
+    private boolean isFirstResponse(List<? extends InvoiceLineItem> items) {
+        boolean isFirstResponse = false;
+
+        if (numberOfLineItems - lineItemsToWrite <= items.size()) {
+            isFirstResponse = true;
+        }
+        return isFirstResponse;
     }
 }

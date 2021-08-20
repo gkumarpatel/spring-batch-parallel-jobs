@@ -37,8 +37,4 @@ dependencies {
 	}
 }
 
-test {
-	useJUnitPlatform()
-}
-
 compileJava.inputs.files(processResources)
