@@ -17,4 +17,5 @@ public class JobConstants {
     public static final String INVOICE_ID_TOKEN = "invoiceId";
     public static final String SIZE_TOKEN = "size";
     public static final String USAGE_TYPE_TOKEN = "usageType";
+    public static final String V1_API_PREFIX = "/v1/";
 }

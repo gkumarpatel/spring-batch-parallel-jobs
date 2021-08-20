@@ -13,9 +13,12 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.appdirect.iaas.azure.mockutility.mapper.DailyRatedUsageLineItemMapper;
@@ -24,6 +27,7 @@ import com.appdirect.iaas.azure.mockutility.model.DailyRatedUsageItemsResponse;
 import com.appdirect.iaas.azure.mockutility.model.DailyRatedUsageLineItemBean;
 import com.appdirect.iaas.azure.mockutility.model.OneTimeInvoiceLineItemBean;
 import com.appdirect.iaas.azure.mockutility.model.OneTimeInvoiceLineItemResponse;
+import com.appdirect.iaas.azure.mockutility.util.FileUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.store.partnercenter.models.invoices.DailyRatedUsageLineItem;
@@ -37,10 +41,31 @@ public class InvoiceFileServiceImpl implements InvoiceFileService {
 
     private final OneTimeInvoiceLineItemMapper oneTimeInvoiceLineItemMapper;
     private final DailyRatedUsageLineItemMapper dailyRatedUsageLineItemMapper;
+    
+    private static String oneTimeInvoiceFilesPath;
+    private static String dailyRatedInvoiceFilesPath;
 
+    @Value("${responseFolder.mainFolderPath}")
+    private String responseOutputPath;
 
+    @Value("${mock.numberOfLineItems}")
+    private Long numberOfLineItems;
+
+    @Value("${responseFolder.dailyRatedPath.filesPath}")
+    public String dailyRatedFilesPath;
+
+    @Value("${responseFolder.OneTimePath.filesPath}")
+    public String oneTimeFilesPath;
+    
+    @PostConstruct
+    public void setUp() {
+        String totalInvoices = numberOfLineItems.toString();
+        oneTimeInvoiceFilesPath = FileUtil.generateFolders(oneTimeFilesPath, responseOutputPath, totalInvoices).toString();
+        dailyRatedInvoiceFilesPath = FileUtil.generateFolders(dailyRatedFilesPath, responseOutputPath, totalInvoices).toString();
+    }
+    
     @Override
-    public void generateOneTimeInvoiceResponseFile(ObjectMapper objectMapper, boolean isLastResponse, List<InvoiceLineItem> invoiceLineItems, String oneTimeInvoiceFilesPath, int oneTimeJsonFileCount) throws IOException {
+    public void generateOneTimeInvoiceResponseFile(ObjectMapper objectMapper, boolean isLastResponse, List<InvoiceLineItem> invoiceLineItems, int oneTimeJsonFileCount) throws IOException {
 
         InvoiceLineItem invoiceLineItem = invoiceLineItems.get(0);
         String pageSize = String.valueOf(invoiceLineItems.size());
@@ -76,7 +101,7 @@ public class InvoiceFileServiceImpl implements InvoiceFileService {
     }
 
     @Override
-    public void generateDailyRatedUsageResponseFile(ObjectMapper objectMapper, boolean isLastResponse, List<InvoiceLineItem> invoiceLineItems, String dailyRatedInvoiceFilesPath, int dailyRatedJsonFileCount) throws IOException {
+    public void generateDailyRatedUsageResponseFile(ObjectMapper objectMapper, boolean isLastResponse, List<InvoiceLineItem> invoiceLineItems, int dailyRatedJsonFileCount) throws IOException {
 
         InvoiceLineItem invoiceLineItem = invoiceLineItems.get(0);
         String pageSize = String.valueOf(invoiceLineItems.size());

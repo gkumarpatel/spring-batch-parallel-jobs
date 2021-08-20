@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 
 import com.appdirect.iaas.azure.mockutility.service.InvoiceFileService;
 import com.appdirect.iaas.azure.mockutility.service.MappingFileService;
-import com.appdirect.iaas.azure.mockutility.util.FileUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.microsoft.store.partnercenter.models.invoices.DailyRatedUsageLineItem;
@@ -26,10 +25,6 @@ import com.microsoft.store.partnercenter.models.invoices.OneTimeInvoiceLineItem;
 public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
 
     private static Long lineItemsToWrite;
-    private static String oneTimeInvoiceFilesPath;
-    private static String oneTimeMappingFilesPath;
-    private static String dailyRatedInvoiceFilesPath;
-    private static String dailyRatedMappingFilesPath;
 
     private static int oneTimeJsonFileCount = 1;
     private static int dailyRatedJsonFileCount = 1;
@@ -39,12 +34,6 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
 
     @Value("${mock.numberOfLineItems}")
     private Long numberOfLineItems;
-
-    @Value("${responseFolder.dailyRatedPath.filesPath}")
-    public String dailyRatedFilesPath;
-
-    @Value("${responseFolder.OneTimePath.filesPath}")
-    public String oneTimeFilesPath;
 
     @Value("${responseFolder.mainFolderPath}")
     private String responseOutputPath;
@@ -59,12 +48,7 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
     @PostConstruct
     public void setUp() {
         lineItemsToWrite = numberOfLineItems;
-        String totalInvoices = numberOfLineItems.toString();
-        oneTimeInvoiceFilesPath = FileUtil.generateFolders(oneTimeFilesPath, responseOutputPath, totalInvoices).toString();
-        oneTimeMappingFilesPath = FileUtil.generateFolders(oneTimeMappingsPath, responseOutputPath, totalInvoices).toString();
-        dailyRatedInvoiceFilesPath = FileUtil.generateFolders(dailyRatedFilesPath, responseOutputPath, totalInvoices).toString();
-        dailyRatedMappingFilesPath = FileUtil.generateFolders(dailyRatedMappingsPath, responseOutputPath, totalInvoices).toString();
-    }
+      }
 
     @Override
     public void write(List<? extends InvoiceLineItem> items) throws Exception {
@@ -78,12 +62,12 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
         String pageSize = String.valueOf(items.size());
 
         if (invoiceLineItem instanceof OneTimeInvoiceLineItem) {
-            invoiceFileService.generateOneTimeInvoiceResponseFile(objectMapper, isLastResponse, (List<InvoiceLineItem>) items, oneTimeInvoiceFilesPath, oneTimeJsonFileCount);
-            mappingFileService.generateOneTimeInvoiceMappingFile(objectMapper, oneTimeJsonFileCount, ((OneTimeInvoiceLineItem) invoiceLineItem).getInvoiceNumber(), pageSize, oneTimeMappingFilesPath);
+            invoiceFileService.generateOneTimeInvoiceResponseFile(objectMapper, isLastResponse, (List<InvoiceLineItem>) items, oneTimeJsonFileCount);
+            mappingFileService.generateOneTimeInvoiceMappingFile(objectMapper, oneTimeJsonFileCount, ((OneTimeInvoiceLineItem) invoiceLineItem).getInvoiceNumber(), pageSize, isLastResponse);
             oneTimeJsonFileCount++;
         } else {
-            invoiceFileService.generateDailyRatedUsageResponseFile(objectMapper, isLastResponse, (List<InvoiceLineItem>) items, dailyRatedInvoiceFilesPath, dailyRatedJsonFileCount);
-            mappingFileService.generateDailyRatedUsageMappingFile(objectMapper, dailyRatedJsonFileCount, ((DailyRatedUsageLineItem) invoiceLineItem).getInvoiceNumber(), pageSize, dailyRatedMappingFilesPath);
+            invoiceFileService.generateDailyRatedUsageResponseFile(objectMapper, isLastResponse, (List<InvoiceLineItem>) items, dailyRatedJsonFileCount);
+            mappingFileService.generateDailyRatedUsageMappingFile(objectMapper, dailyRatedJsonFileCount, ((DailyRatedUsageLineItem) invoiceLineItem).getInvoiceNumber(), pageSize, isLastResponse);
             dailyRatedJsonFileCount++;
         }
 
