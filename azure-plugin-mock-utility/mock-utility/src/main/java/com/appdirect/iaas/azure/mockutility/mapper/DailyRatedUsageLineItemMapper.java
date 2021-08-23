@@ -29,7 +29,7 @@ public class DailyRatedUsageLineItemMapper {
         mapperFacade = mapperFactory.getMapperFacade();
 
         var mapperFactory2 = new DefaultMapperFactory.Builder().mapNulls(false).build();
-        mapperFactory2.getConverterFactory().registerConverter(new JodaDateAndLocalDateTimeConverter());
+        mapperFactory2.getConverterFactory().registerConverter(new JodaDateAndDateConverter());
         mapperFactory2.classMap(DailyRatedUsageLineItem.class, DailyRatedUsageLineItemBean.class)
                 .fieldAToB("additionalInfo", "additionalInfo").fieldAToB("availabilityId", "availabilityId")
                 .fieldAToB("billingCurrency", "billingCurrency").fieldAToB("billingPreTaxTotal", "billingPreTaxTotal")

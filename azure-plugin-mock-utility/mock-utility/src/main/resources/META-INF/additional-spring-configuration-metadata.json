@@ -19,6 +19,51 @@
       "name": "mock.chunkSize",
       "type": "java.lang.Integer",
       "description": "Total number of line items in one JSON response"
+    },
+    {
+      "name": "responseFolder.mainFolderPath",
+      "type": "java.lang.String",
+      "description": "Root folder path to create both mapping and invoice files response within it."
+    },
+    {
+      "name": "responseFolder.dailyRatedPath.mappingPath",
+      "type": "java.lang.String",
+      "description": "Relative file path within responseFolder.mainFolderPath to create Wiremock mapping files for Daily Rated Usage Request."
+    },
+    {
+      "name": "responseFolder.dailyRatedPath.filesPath",
+      "type": "java.lang.String",
+      "description": "Relative file path within responseFolder.mainFolderPath to create Mocked Invoice API Response files for Daily Rated Request."
+    },
+    {
+      "name": "responseFolder.OneTimePath.filesPath",
+      "type": "java.lang.String",
+      "description": "Relative file path within responseFolder.mainFolderPath to create Wiremock mapping files for One Time Usage Request."
+    },
+    {
+      "name": "responseFolder.OneTimePath.mappingPath",
+      "type": "java.lang.String",
+      "description": "Relative file path within responseFolder.mainFolderPath to create Mocked Invoice API Response files for One Time Invoice Request."
+    },
+    {
+      "name": "wireMock.response.bodyFileNamePrefix",
+      "type": "java.lang.String",
+      "description": "Folder name as prefix that will contains lineItems files within WireMock service."
+    },
+    {
+      "name": "wireMock.delayDistribution.type",
+      "type": "java.lang.String",
+      "description": "To simulate the delayed in API response define the delay type supported by Wiremock i.e. lognormal, Uniform etc. Here choosen lognoraml More info at <a href=http://wiremock.org/docs/simulating-faults> http://wiremock.org/docs/simulating-faults </a>."
+    },
+    {
+      "name": "wireMock.delayDistribution.median",
+      "type": "java.lang.String",
+      "description": "For lognormal delay type percentile of latencies in response."
+    },
+    {
+      "name": "wireMock.delayDistribution.sigma",
+      "type": "java.lang.String",
+      "description": "For lognoral delay type standard deviation from it."
     }
   ]
 }

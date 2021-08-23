@@ -26,7 +26,7 @@ public class OneTimeInvoiceLineItemMapper {
         mapperFacade = mapperFactory.getMapperFacade();
 
         var mapperFactory2 = new DefaultMapperFactory.Builder().mapNulls(false).build();
-        mapperFactory2.getConverterFactory().registerConverter(new JodaDateAndLocalDateTimeConverter());
+        mapperFactory2.getConverterFactory().registerConverter(new JodaDateAndDateConverter());
         mapperFactory2.classMap(OneTimeInvoiceLineItem.class, OneTimeInvoiceLineItemBean.class)
                 .fieldAToB("alternateId", "alternateId").fieldAToB("availabilityId", "availabilityId")
                 .fieldAToB("billingFrequency", "billingFrequency").fieldAToB("chargeEndDate", "chargeEndDate")
