@@ -8,8 +8,8 @@ import com.microsoft.store.partnercenter.models.invoices.InvoiceLineItem;
 
 public interface InvoiceFileService {
     
-    void generateOneTimeInvoiceResponseFile(ObjectMapper objectMapper, boolean isLastResponse, List<InvoiceLineItem> invoiceLineItems, int oneTimeJsonFileCount) throws IOException;
+    String generateOneTimeInvoiceResponseFile(ObjectMapper objectMapper, boolean isLastResponse, List<InvoiceLineItem> invoiceLineItems, int oneTimeJsonFileCount) throws IOException;
 
-    void generateDailyRatedUsageResponseFile(ObjectMapper objectMapper, boolean isLastResponse, List<InvoiceLineItem> invoiceLineItems, int dailyRatedJsonFileCount) throws IOException;
+    String generateDailyRatedUsageResponseFile(ObjectMapper objectMapper, boolean isLastResponse, List<InvoiceLineItem> invoiceLineItems, int dailyRatedJsonFileCount) throws IOException;
     
 }

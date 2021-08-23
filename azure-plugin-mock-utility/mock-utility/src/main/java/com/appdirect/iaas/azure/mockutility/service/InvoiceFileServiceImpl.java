@@ -5,6 +5,7 @@ import static com.appdirect.iaas.azure.mockutility.constants.JobConstants.JSON_F
 import static com.appdirect.iaas.azure.mockutility.constants.JobConstants.ONE_TIME_JSON_RESPONSE_FILE;
 import static com.appdirect.iaas.azure.mockutility.constants.JobConstants.USAGE_TYPE_DAILY;
 import static com.appdirect.iaas.azure.mockutility.constants.JobConstants.USAGE_TYPE_ONE_TIME;
+import static com.appdirect.iaas.azure.mockutility.util.FileUtil.convertObjectToJson;
 import static com.appdirect.iaas.azure.mockutility.util.FileUtil.writeResponseToJsonFile;
 import static com.appdirect.iaas.azure.mockutility.util.InvoiceServiceUtil.generateContinuationToken;
 import static com.appdirect.iaas.azure.mockutility.util.InvoiceServiceUtil.getLinks;
@@ -28,7 +29,6 @@ import com.appdirect.iaas.azure.mockutility.model.DailyRatedUsageLineItemBean;
 import com.appdirect.iaas.azure.mockutility.model.OneTimeInvoiceLineItemBean;
 import com.appdirect.iaas.azure.mockutility.model.OneTimeInvoiceLineItemResponse;
 import com.appdirect.iaas.azure.mockutility.util.FileUtil;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.store.partnercenter.models.invoices.DailyRatedUsageLineItem;
 import com.microsoft.store.partnercenter.models.invoices.InvoiceLineItem;
@@ -65,14 +65,13 @@ public class InvoiceFileServiceImpl implements InvoiceFileService {
     }
     
     @Override
-    public void generateOneTimeInvoiceResponseFile(ObjectMapper objectMapper, boolean isLastResponse, List<InvoiceLineItem> invoiceLineItems, int oneTimeJsonFileCount) throws IOException {
+    public String generateOneTimeInvoiceResponseFile(ObjectMapper objectMapper, boolean isLastResponse, List<InvoiceLineItem> invoiceLineItems, int oneTimeJsonFileCount) throws IOException {
 
         InvoiceLineItem invoiceLineItem = invoiceLineItems.get(0);
         String pageSize = String.valueOf(invoiceLineItems.size());
 
         String invoiceNumber = ((OneTimeInvoiceLineItem) invoiceLineItem).getInvoiceNumber();
         OneTimeInvoiceLineItemResponse oneTimeInvoiceLineItemResponse = new OneTimeInvoiceLineItemResponse();
-        String continuationToken = null;
 
         List<OneTimeInvoiceLineItemBean> oneTimeInvoiceLineItemBeans = invoiceLineItems.stream().map(item -> oneTimeInvoiceLineItemMapper.mapFromOneTimeInvoiceLineItem((OneTimeInvoiceLineItem) item)
         ).collect(Collectors.toList());
@@ -80,59 +79,43 @@ public class InvoiceFileServiceImpl implements InvoiceFileService {
         oneTimeInvoiceLineItemResponse.setItems(oneTimeInvoiceLineItemBeans);
         oneTimeInvoiceLineItemResponse.setTotalCount(oneTimeInvoiceLineItemBeans.size());
 
+        String continuationToken = null;
         continuationToken = generateContinuationToken(isLastResponse);
         oneTimeInvoiceLineItemResponse.setContinuationToken(continuationToken);
 
         oneTimeInvoiceLineItemResponse.setLinks(getLinks(isLastResponse, continuationToken, USAGE_TYPE_ONE_TIME, invoiceNumber, pageSize));
-
+        String invoiceFileJsonResponse = convertObjectToJson(objectMapper, oneTimeInvoiceLineItemResponse);
+       
         String oneTimeResponseFileName = ONE_TIME_JSON_RESPONSE_FILE.concat(String.valueOf(oneTimeJsonFileCount)).concat(".json");
         String invoiceLineJsonFilePathName = oneTimeInvoiceFilesPath.concat("/").concat(oneTimeResponseFileName);
-
-        //TODO : Seperat it to file utils
-        String invoiceFileJsonResponse = null;
-        try {
-            invoiceFileJsonResponse = objectMapper.writeValueAsString(oneTimeInvoiceLineItemResponse);
-        } catch (JsonProcessingException exception) {
-            log.error("Error occured while converting object to json={}", exception);
-            throw exception;
-        }
-
         writeResponseToJsonFile(invoiceLineJsonFilePathName, invoiceFileJsonResponse);
+        return continuationToken;
     }
 
     @Override
-    public void generateDailyRatedUsageResponseFile(ObjectMapper objectMapper, boolean isLastResponse, List<InvoiceLineItem> invoiceLineItems, int dailyRatedJsonFileCount) throws IOException {
+    public String generateDailyRatedUsageResponseFile(ObjectMapper objectMapper, boolean isLastResponse, List<InvoiceLineItem> invoiceLineItems, int dailyRatedJsonFileCount) throws IOException {
 
         InvoiceLineItem invoiceLineItem = invoiceLineItems.get(0);
         String pageSize = String.valueOf(invoiceLineItems.size());
         
         String invoiceNumber = ((DailyRatedUsageLineItem) invoiceLineItem).getInvoiceNumber();
         DailyRatedUsageItemsResponse dailyRatedUsageItemsResponse = new DailyRatedUsageItemsResponse();
-        String continuationToken = null;
 
         List<DailyRatedUsageLineItemBean> dailyRatedUsageLineItemBeans = invoiceLineItems.stream().map(item -> dailyRatedUsageLineItemMapper.mapFromDailyRatedInvoiceLineItem((DailyRatedUsageLineItem) item))
                 .collect(Collectors.toList());
         dailyRatedUsageItemsResponse.setItems(dailyRatedUsageLineItemBeans);
         dailyRatedUsageItemsResponse.setTotalCount(dailyRatedUsageLineItemBeans.size());
 
+        String continuationToken = null;
         continuationToken = generateContinuationToken(isLastResponse);
-
         dailyRatedUsageItemsResponse.setContinuationToken(continuationToken);
-
+        
         dailyRatedUsageItemsResponse.setLinks(getLinks(isLastResponse, continuationToken, USAGE_TYPE_DAILY, invoiceNumber, pageSize));
-
+        String invoiceFileJsonResponse = convertObjectToJson(objectMapper, dailyRatedUsageItemsResponse);
+        
         String dailyRatedResponseFileName  = DAILY_RATED_JSON_REPONSE_FILE.concat(String.valueOf(dailyRatedJsonFileCount)).concat(JSON_FILE_EXTENTION);
         String invoiceLineJsonFilePathName = dailyRatedInvoiceFilesPath.concat("/").concat(dailyRatedResponseFileName);
-
-        //TODO : Seperat it to file utils
-        String invoiceFileJsonResponse = null;
-        try {
-            invoiceFileJsonResponse = objectMapper.writeValueAsString(dailyRatedUsageItemsResponse);
-        } catch (JsonProcessingException exception) {
-            log.error("Error occured while converting object to json={}", exception);
-        }
-
         writeResponseToJsonFile(invoiceLineJsonFilePathName, invoiceFileJsonResponse);
-        
+        return continuationToken;
     }
 }

@@ -25,6 +25,8 @@ import com.microsoft.store.partnercenter.models.invoices.OneTimeInvoiceLineItem;
 public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
 
     private static Long lineItemsToWrite;
+    private static String lastOneTimeContinuationToken;
+    private static String lastDailyRatedContinuationToken;
 
     private static int oneTimeJsonFileCount = 1;
     private static int dailyRatedJsonFileCount = 1;
@@ -57,13 +59,15 @@ public class InvoiceItemWriter implements ItemWriter<InvoiceLineItem> {
         String pageSize = String.valueOf(items.size());
 
         if (invoiceLineItem instanceof OneTimeInvoiceLineItem) {
-            invoiceFileService.generateOneTimeInvoiceResponseFile(objectMapper, isLastResponse(items), (List<InvoiceLineItem>) items, oneTimeJsonFileCount);
-            mappingFileService.generateOneTimeInvoiceMappingFile(objectMapper, oneTimeJsonFileCount, ((OneTimeInvoiceLineItem) invoiceLineItem).getInvoiceNumber(), pageSize, isFirstResponse(items));
+           String continuationToken = invoiceFileService.generateOneTimeInvoiceResponseFile(objectMapper, isLastResponse(items), (List<InvoiceLineItem>) items, oneTimeJsonFileCount);
+            mappingFileService.generateOneTimeInvoiceMappingFile(objectMapper, oneTimeJsonFileCount, ((OneTimeInvoiceLineItem) invoiceLineItem).getInvoiceNumber(), pageSize, isFirstResponse(items), lastOneTimeContinuationToken);
             oneTimeJsonFileCount++;
+            lastOneTimeContinuationToken = continuationToken;
         } else {
-            invoiceFileService.generateDailyRatedUsageResponseFile(objectMapper, isLastResponse(items), (List<InvoiceLineItem>) items, dailyRatedJsonFileCount);
-            mappingFileService.generateDailyRatedUsageMappingFile(objectMapper, dailyRatedJsonFileCount, ((DailyRatedUsageLineItem) invoiceLineItem).getInvoiceNumber(), pageSize, isFirstResponse(items));
+            String continuationToken = invoiceFileService.generateDailyRatedUsageResponseFile(objectMapper, isLastResponse(items), (List<InvoiceLineItem>) items, dailyRatedJsonFileCount);
+            mappingFileService.generateDailyRatedUsageMappingFile(objectMapper, dailyRatedJsonFileCount, ((DailyRatedUsageLineItem) invoiceLineItem).getInvoiceNumber(), pageSize, isFirstResponse(items), lastDailyRatedContinuationToken);
             dailyRatedJsonFileCount++;
+            lastDailyRatedContinuationToken = continuationToken;
         }
 
         lineItemsToWrite -= items.size();

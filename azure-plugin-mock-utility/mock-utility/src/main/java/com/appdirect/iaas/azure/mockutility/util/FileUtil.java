@@ -20,6 +20,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.text.StringSubstitutor;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 @Slf4j
 public class FileUtil {
     public static final String USAGE_SEPERATER = " Usages_";
@@ -61,5 +64,16 @@ public class FileUtil {
         templateTokens.put(USAGE_TYPE_TOKEN, usageType);
 
         return new StringSubstitutor(templateTokens);
+    }
+    
+    public static String convertObjectToJson(ObjectMapper objectMapper, Object objectToConvert) throws JsonProcessingException {
+        String jsonString = null;
+        try {
+            jsonString = objectMapper.writeValueAsString(objectToConvert);
+        } catch (JsonProcessingException exception) {
+            log.error("Error occured while converting object to json={}", exception);
+            throw exception;
+        }
+        return jsonString;
     }
 }

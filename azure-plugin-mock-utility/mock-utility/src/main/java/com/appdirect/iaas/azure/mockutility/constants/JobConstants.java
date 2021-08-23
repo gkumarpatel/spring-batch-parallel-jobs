@@ -1,8 +1,8 @@
 package com.appdirect.iaas.azure.mockutility.constants;
 
 public class JobConstants {
-    public static final String selfResourceLinkURITemplate = "/invoices/${invoiceId}/lineitems?provider=OneTime&invoicelineitemtype=${usageType}&size=${size}";
-    public static final String nextResourceLinkURITemplate = "/invoices/${invoiceId}/lineitems?provider=OneTime&invoicelineitemtype=${usageType}&size=${size}&seekOperation=Next";
+    public static final String selfResourceLinkURITemplate = "/invoices/${invoiceId}/lineitems?provider=onetime&invoicelineitemtype=${usageType}&size=${size}";
+    public static final String nextResourceLinkURITemplate = "/invoices/${invoiceId}/lineitems?provider=onetime&invoicelineitemtype=${usageType}&size=${size}&seekOperation=Next";
     public static final String USAGE_TYPE_DAILY = "usagelineitems";
     public static final String USAGE_TYPE_ONE_TIME = "billinglineitems";
     public static final String ONE_TIME_JSON_RESPONSE_FILE = "OneTimeResponse_";
@@ -17,5 +17,5 @@ public class JobConstants {
     public static final String INVOICE_ID_TOKEN = "invoiceId";
     public static final String SIZE_TOKEN = "size";
     public static final String USAGE_TYPE_TOKEN = "usageType";
-    public static final String V1_API_PREFIX = "/v1/";
+    public static final String V1_API_PREFIX = "/v1";
 }
