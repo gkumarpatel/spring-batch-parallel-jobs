@@ -5,7 +5,7 @@ reconcillation:
     fileName: "MicrosoftRecncilationFIles/OneTimeInvoiceLineItems.csv"
 mock:
   numberOfLineItems: 100
-  chunkSize: 10
+  microsoftLineItemFetchCount: 10
 
 responseFolder:
   mainFolderPath: "/Users/prashantchauhan/Desktop/Target"

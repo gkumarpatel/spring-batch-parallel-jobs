@@ -26,7 +26,7 @@ public class JobConfig {
     private final JobBuilderFactory jobs;
     private final StepBuilderFactory steps;
     
-    @Value("${mock.chunkSize}")
+    @Value("${mock.microsoftLineItemFetchCount}")
     private Integer microsoftLineItemFetchCount;
     
     @Bean

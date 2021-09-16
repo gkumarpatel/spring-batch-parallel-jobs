@@ -45,7 +45,7 @@ public class InvoiceItemReader implements ItemStreamReader<InvoiceLineItem> {
     @Value("${mock.numberOfLineItems}")
     private Long numberOfLineItems;
 
-    @Value("${mock.chunkSize}")
+    @Value("${mock.microsoftLineItemFetchCount}")
     private Integer microsoftLineItemFetchCount;
 
     private Long numberOfLineItemsRead = 0l;
