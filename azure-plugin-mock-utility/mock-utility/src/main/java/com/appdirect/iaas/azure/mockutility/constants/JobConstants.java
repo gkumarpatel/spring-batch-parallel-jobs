@@ -5,10 +5,10 @@ public class JobConstants {
     public static final String nextResourceLinkURITemplate = "/invoices/${invoiceId}/lineitems?provider=onetime&invoicelineitemtype=${usageType}&size=${size}&seekOperation=Next";
     public static final String USAGE_TYPE_DAILY = "usagelineitems";
     public static final String USAGE_TYPE_ONE_TIME = "billinglineitems";
-    public static final String ONE_TIME_JSON_RESPONSE_FILE = "OneTimeResponse_";
-    public static final String DAILY_RATED_JSON_REPONSE_FILE = "DailyRated_";
-    public static final String ONE_TIME_MAPPING_JSON_RESPONSE_FILE = "OneTimeMapping_";
-    public static final String DAILY_RATED_MAPPING_JSON_REPONSE_FILE = "DailyMapping_";
+    public static final String ONE_TIME_JSON_RESPONSE_FILE = "_OneTimeResponse_";
+    public static final String DAILY_RATED_JSON_REPONSE_FILE = "_DailyRated_";
+    public static final String ONE_TIME_MAPPING_JSON_RESPONSE_FILE = "_OneTimeMapping_";
+    public static final String DAILY_RATED_MAPPING_JSON_REPONSE_FILE = "_DailyMapping_";
     public static final String JSON_FILE_EXTENTION = ".json";
     public static final String MS_CONTINUATION_TOKEN = "MS-ContinuationToken";
     public static final String HTTP_METHOD_GET = "GET";
