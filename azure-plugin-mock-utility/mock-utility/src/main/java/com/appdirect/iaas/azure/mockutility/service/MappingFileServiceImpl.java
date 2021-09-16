@@ -49,8 +49,8 @@ public class MappingFileServiceImpl implements MappingFileService {
     @Value("${wireMock.delayDistribution.sigma}")
     private Float delayDetributionSigma;
 
-    @Value("${wireMock.response.bodyFileNamePrefix}")
-    private String bodyFileNamePrefix;
+    @Value("${wireMock.response.teamName}")
+    private String teamName;
 
     @Value("${responseFolder.dailyRatedPath.mappingPath}")
     public String dailyRatedMappingsPath;
@@ -63,6 +63,9 @@ public class MappingFileServiceImpl implements MappingFileService {
 
     @Value("${responseFolder.mainFolderPath}")
     private String responseOutputPath;
+
+    @Value("${wireMock.response.useCaseName}")
+    private String useCaseNamePrefix;
 
     @PostConstruct
     public void setUp() {
@@ -80,7 +83,7 @@ public class MappingFileServiceImpl implements MappingFileService {
         WireMockMappingResponse wireMockMappingResponse = getWireMockMappingResponse(oneTimeResponseFileName);
 
         StringSubstitutor stringSubstitutor = getStringSubstitutor(invoiceId, pageSize, USAGE_TYPE_ONE_TIME);
-        String requestUrl = V1_API_PREFIX.concat(getRequestUrl(stringSubstitutor, isFirstResponse));
+        String requestUrl = teamName.concat("/").concat(useCaseNamePrefix).concat(V1_API_PREFIX).concat(getRequestUrl(stringSubstitutor, isFirstResponse));
 
         WireMockMappingRequest wireMockMappingRequest = getWireMockMappingRequest(isFirstResponse, lastContinuationToken, requestUrl);
         WireMockMapping wireMockMapping = getWireMockMapping(wireMockMappingResponse, wireMockMappingRequest);
@@ -99,7 +102,7 @@ public class MappingFileServiceImpl implements MappingFileService {
         WireMockMappingResponse wireMockMappingResponse = getWireMockMappingResponse(dailyRatedResponseFileName);
 
         StringSubstitutor stringSubstitutor = getStringSubstitutor(invoiceId, pageSize, USAGE_TYPE_DAILY);
-        String requestUrl = V1_API_PREFIX.concat(getRequestUrl(stringSubstitutor, isFirstResponse));
+        String requestUrl = teamName.concat("/").concat(useCaseNamePrefix).concat(V1_API_PREFIX).concat(getRequestUrl(stringSubstitutor, isFirstResponse));
 
         WireMockMappingRequest wireMockMappingRequest = getWireMockMappingRequest(isFirstResponse, lastContinuationToken, requestUrl);
         WireMockMapping wireMockMapping = getWireMockMapping(wireMockMappingResponse, wireMockMappingRequest);
@@ -134,7 +137,7 @@ public class MappingFileServiceImpl implements MappingFileService {
     private WireMockMappingResponse getWireMockMappingResponse(String oneTimeResponseFileName, WireMockMappingDelayDistribution delayDistribution) {
         WireMockMappingResponse wireMockMappingResponse = new WireMockMappingResponse();
         wireMockMappingResponse.setDelayDistribution(delayDistribution);
-        String bodyFileName = bodyFileNamePrefix.concat("/").concat(oneTimeResponseFileName);
+        String bodyFileName = teamName.concat("/").concat(useCaseNamePrefix).concat("/").concat(oneTimeResponseFileName);
         wireMockMappingResponse.setBodyFileName(bodyFileName);
         return wireMockMappingResponse;
     }
