@@ -1,10 +1,10 @@
 reconcillation:
   dailyRated:
-    fileName: "MicrosoftRecncilationFIles/DailyRatedusageLineItems.csv"
+    fileName: "MicrosoftRecncilationFIles/G004733043_DailyRatedusageLineItems.csv"
   oneTime:
-    fileName: "MicrosoftRecncilationFIles/OneTimeInvoiceLineItems.csv"
+    fileName: "MicrosoftRecncilationFIles/G004733043_OneTimeInvoiceLineItems.csv"
 mock:
-  numberOfLineItems: 40000
+  numberOfLineItems: 20000
   chunkSize: 2000
 
 responseFolder:
