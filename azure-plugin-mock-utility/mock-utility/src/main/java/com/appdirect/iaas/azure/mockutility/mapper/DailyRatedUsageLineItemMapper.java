@@ -54,6 +54,7 @@ public class DailyRatedUsageLineItemMapper {
                 .fieldAToB("serviceInfo1", "serviceInfo1").fieldAToB("serviceInfo2", "serviceInfo2")
                 .fieldAToB("skuId", "skuId").fieldAToB("skuName", "skuName")
                 .fieldAToB("subscriptionDescription", "subscriptionDescription").fieldAToB("subscriptionId", "subscriptionId")
+                .fieldAToB("tags", "tags").fieldAToB("usageItemDate", "usageItemDate")
                 .register();
 
         mapperFacade2 = mapperFactory2.getMapperFacade();
