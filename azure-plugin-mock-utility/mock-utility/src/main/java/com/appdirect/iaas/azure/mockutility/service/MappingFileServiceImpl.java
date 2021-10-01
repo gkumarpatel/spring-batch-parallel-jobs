@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Service
 public class MappingFileServiceImpl implements MappingFileService {
 
+    public static final String LINE_ITEM = "line-item";
     private static String oneTimeMappingFilesPath;
     private static String dailyRatedMappingFilesPath;
 
@@ -49,8 +50,8 @@ public class MappingFileServiceImpl implements MappingFileService {
     @Value("${wireMock.delayDistribution.sigma}")
     private Float delayDetributionSigma;
 
-    @Value("${wireMock.response.bodyFileNamePrefix}")
-    private String bodyFileNamePrefix;
+    @Value("${wireMock.response.teamName}")
+    private String teamName;
 
     @Value("${responseFolder.dailyRatedPath.mappingPath}")
     public String dailyRatedMappingsPath;
@@ -64,6 +65,9 @@ public class MappingFileServiceImpl implements MappingFileService {
     @Value("${responseFolder.mainFolderPath}")
     private String responseOutputPath;
 
+    @Value("${wireMock.response.useCaseName}")
+    private String useCaseNamePrefix;
+
     @PostConstruct
     public void setUp() {
 
@@ -75,18 +79,18 @@ public class MappingFileServiceImpl implements MappingFileService {
     @Override
     public void generateOneTimeInvoiceMappingFile(ObjectMapper objectMapper, int oneTimeJsonFileCount, String invoiceId, String pageSize, boolean isFirstResponse, String lastContinuationToken) throws IOException {
 
-        String oneTimeResponseFileName = ONE_TIME_JSON_RESPONSE_FILE.concat(String.valueOf(oneTimeJsonFileCount)).concat(".json");
+        String oneTimeResponseFileName = invoiceId.concat(ONE_TIME_JSON_RESPONSE_FILE).concat(String.valueOf(oneTimeJsonFileCount)).concat(".json");
 
         WireMockMappingResponse wireMockMappingResponse = getWireMockMappingResponse(oneTimeResponseFileName);
 
         StringSubstitutor stringSubstitutor = getStringSubstitutor(invoiceId, pageSize, USAGE_TYPE_ONE_TIME);
-        String requestUrl = V1_API_PREFIX.concat(getRequestUrl(stringSubstitutor, isFirstResponse));
+        String requestUrl = teamName.concat("/").concat(useCaseNamePrefix).concat(V1_API_PREFIX).concat(getRequestUrl(stringSubstitutor, isFirstResponse));
 
         WireMockMappingRequest wireMockMappingRequest = getWireMockMappingRequest(isFirstResponse, lastContinuationToken, requestUrl);
         WireMockMapping wireMockMapping = getWireMockMapping(wireMockMappingResponse, wireMockMappingRequest);
 
         String mappingFileJsonResponse = objectMapper.writeValueAsString(wireMockMapping);
-        String mappingJsonFilePath = oneTimeMappingFilesPath.concat("/").concat(ONE_TIME_MAPPING_JSON_RESPONSE_FILE).concat(String.valueOf(oneTimeJsonFileCount)).concat(JSON_FILE_EXTENTION);
+        String mappingJsonFilePath = oneTimeMappingFilesPath.concat("/").concat(invoiceId).concat(ONE_TIME_MAPPING_JSON_RESPONSE_FILE).concat(String.valueOf(oneTimeJsonFileCount)).concat(JSON_FILE_EXTENTION);
 
         writeResponseToJsonFile(mappingJsonFilePath, mappingFileJsonResponse);
     }
@@ -94,18 +98,18 @@ public class MappingFileServiceImpl implements MappingFileService {
     @Override
     public void generateDailyRatedUsageMappingFile(ObjectMapper objectMapper, int dailyRatedJsonFileCount, String invoiceId, String pageSize, boolean isFirstResponse, String lastContinuationToken) throws IOException {
 
-        String dailyRatedResponseFileName = DAILY_RATED_JSON_REPONSE_FILE.concat(String.valueOf(dailyRatedJsonFileCount)).concat(JSON_FILE_EXTENTION);
+        String dailyRatedResponseFileName = invoiceId.concat(DAILY_RATED_JSON_REPONSE_FILE).concat(String.valueOf(dailyRatedJsonFileCount)).concat(JSON_FILE_EXTENTION);
 
         WireMockMappingResponse wireMockMappingResponse = getWireMockMappingResponse(dailyRatedResponseFileName);
 
         StringSubstitutor stringSubstitutor = getStringSubstitutor(invoiceId, pageSize, USAGE_TYPE_DAILY);
-        String requestUrl = V1_API_PREFIX.concat(getRequestUrl(stringSubstitutor, isFirstResponse));
+        String requestUrl = teamName.concat("/").concat(useCaseNamePrefix).concat(V1_API_PREFIX).concat(getRequestUrl(stringSubstitutor, isFirstResponse));
 
         WireMockMappingRequest wireMockMappingRequest = getWireMockMappingRequest(isFirstResponse, lastContinuationToken, requestUrl);
         WireMockMapping wireMockMapping = getWireMockMapping(wireMockMappingResponse, wireMockMappingRequest);
 
         String mappingFileJsonResponse = objectMapper.writeValueAsString(wireMockMapping);
-        String mappingJsonFilePath = dailyRatedMappingFilesPath.concat("/").concat(DAILY_RATED_MAPPING_JSON_REPONSE_FILE).concat(String.valueOf(dailyRatedJsonFileCount)).concat(JSON_FILE_EXTENTION);
+        String mappingJsonFilePath = (dailyRatedMappingFilesPath).concat("/").concat(invoiceId).concat(DAILY_RATED_MAPPING_JSON_REPONSE_FILE).concat(String.valueOf(dailyRatedJsonFileCount)).concat(JSON_FILE_EXTENTION);
 
         writeResponseToJsonFile(mappingJsonFilePath, mappingFileJsonResponse);
     }
@@ -134,7 +138,7 @@ public class MappingFileServiceImpl implements MappingFileService {
     private WireMockMappingResponse getWireMockMappingResponse(String oneTimeResponseFileName, WireMockMappingDelayDistribution delayDistribution) {
         WireMockMappingResponse wireMockMappingResponse = new WireMockMappingResponse();
         wireMockMappingResponse.setDelayDistribution(delayDistribution);
-        String bodyFileName = bodyFileNamePrefix.concat("/").concat(oneTimeResponseFileName);
+        String bodyFileName = teamName.concat("/").concat(useCaseNamePrefix).concat("/").concat(LINE_ITEM).concat("/").concat(oneTimeResponseFileName);
         wireMockMappingResponse.setBodyFileName(bodyFileName);
         return wireMockMappingResponse;
     }

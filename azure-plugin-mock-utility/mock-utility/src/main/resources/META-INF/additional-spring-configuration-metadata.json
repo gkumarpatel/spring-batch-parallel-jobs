@@ -16,7 +16,7 @@
       "description": "Total number of mock line items to be generated"
     },
     {
-      "name": "mock.chunkSize",
+      "name": "mock.microsoftLineItemFetchCount",
       "type": "java.lang.Integer",
       "description": "Total number of line items in one JSON response"
     },

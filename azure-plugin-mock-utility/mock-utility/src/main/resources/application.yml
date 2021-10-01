@@ -1,28 +1,29 @@
 reconcillation:
   dailyRated:
-    fileName: "MicrosoftRecncilationFIles/DailyRatedusageLineItems.csv"
+    fileName: "MicrosoftRecncilationFIles/FuntionalTestData/G005354172_DailyRatedusageLineItems.csv"
   oneTime:
-    fileName: "MicrosoftRecncilationFIles/OneTimeInvoiceLineItems.csv"
+    fileName: "MicrosoftRecncilationFIles/FuntionalTestData/G005354172_OneTimeInvoiceLineItems.csv"
 mock:
-  numberOfLineItems: 100
-  chunkSize: 10
+  numberOfLineItems: 20000
+  microsoftLineItemFetchCount: 2000
 
 responseFolder:
   mainFolderPath: "/Users/prashantchauhan/Desktop/Target"
   dailyRatedPath:
-    filesPath: "/DailyRated/__files/"
-    mappingPath: "/DailyRated/mappings/"
+    filesPath: "/__files/"
+    mappingPath: "/mappings/"
   OneTimePath:
-    filesPath: "/OneTime/__files/"
-    mappingPath: "/OneTime/mappings/"
+    filesPath: "/__files/"
+    mappingPath: "/mappings/"
 
 
 wireMock:
   response:
-    bodyFileNamePrefix: "lineitem"
+    teamName: "/iaas"
+    useCaseName: "dt-csp-invoice" 
   delayDistribution:
     type: "lognormal"
-    median: 500
+    median: 2000
     sigma: 0.4
 
 spring:

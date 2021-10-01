@@ -26,8 +26,8 @@ public class JobConfig {
     private final JobBuilderFactory jobs;
     private final StepBuilderFactory steps;
     
-    @Value("${mock.chunkSize}")
-    private Integer chunkSize;
+    @Value("${mock.microsoftLineItemFetchCount}")
+    private Integer microsoftLineItemFetchCount;
     
     @Bean
     public Job job(@Qualifier("generateMocks") Step step1) {
@@ -41,7 +41,7 @@ public class JobConfig {
                                  ItemProcessor<InvoiceLineItem, InvoiceLineItem> invoiceItemProcessor,
                                  ItemWriter<InvoiceLineItem> invoiceItemWriter) {
         return steps.get("generateMocks")
-                .<InvoiceLineItem, InvoiceLineItem>chunk(chunkSize)
+                .<InvoiceLineItem, InvoiceLineItem>chunk(microsoftLineItemFetchCount)
                 .reader(invoiceItemReader)
                 .processor(invoiceItemProcessor)
                 .writer(invoiceItemWriter)

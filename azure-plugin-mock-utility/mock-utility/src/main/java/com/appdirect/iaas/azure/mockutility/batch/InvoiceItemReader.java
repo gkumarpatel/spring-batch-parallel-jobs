@@ -45,8 +45,8 @@ public class InvoiceItemReader implements ItemStreamReader<InvoiceLineItem> {
     @Value("${mock.numberOfLineItems}")
     private Long numberOfLineItems;
 
-    @Value("${mock.chunkSize}")
-    private Integer chunkSize;
+    @Value("${mock.microsoftLineItemFetchCount}")
+    private Integer microsoftLineItemFetchCount;
 
     private Long numberOfLineItemsRead = 0l;
 
@@ -71,7 +71,7 @@ public class InvoiceItemReader implements ItemStreamReader<InvoiceLineItem> {
             invoiceLineItem = dailyRatedInvoiceLineItem.get(dailyRatedIndex % dailyRatedInvoiceLineItem.size());
             dailyRatedIndex++;
 
-            if (dailyRatedIndex % chunkSize == 0) {
+            if (dailyRatedIndex % microsoftLineItemFetchCount == 0) {
                 isCurrentListDailyRated = false;
                 dailyRatedIndex = 0;
             }
@@ -79,7 +79,7 @@ public class InvoiceItemReader implements ItemStreamReader<InvoiceLineItem> {
             invoiceLineItem = oneTimeInvoiceLineItem.get(oneTimeIndex % oneTimeInvoiceLineItem.size());
             oneTimeIndex++;
 
-            if (oneTimeIndex % chunkSize == 0) {
+            if (oneTimeIndex % microsoftLineItemFetchCount == 0) {
                 isCurrentListDailyRated = true;
                 oneTimeIndex = 0;
             }

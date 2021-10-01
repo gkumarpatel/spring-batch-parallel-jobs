@@ -30,7 +30,7 @@ public class OneTimeInvoiceLineItemMapper {
         mapperFactory2.classMap(OneTimeInvoiceLineItem.class, OneTimeInvoiceLineItemBean.class)
                 .fieldAToB("alternateId", "alternateId").fieldAToB("availabilityId", "availabilityId")
                 .fieldAToB("billingFrequency", "billingFrequency").fieldAToB("chargeEndDate", "chargeEndDate")
-                .fieldAToB("billableQuantity", "billableQuantity").fieldAToB("chargeStartDate", "chargeStarDate")
+                .fieldAToB("billableQuantity", "billableQuantity").fieldAToB("chargeStartDate", "chargeStartDate")
                 .fieldAToB("chargeType", "chargeType").fieldAToB("currency", "currency")
                 .fieldAToB("customerCountry", "customerCountry").fieldAToB("customerDomainName", "customerDomainName")
                 .fieldAToB("customerName", "customerName").fieldAToB("customerId", "customerId")

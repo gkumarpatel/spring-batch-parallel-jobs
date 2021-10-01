@@ -86,7 +86,7 @@ public class InvoiceFileServiceImpl implements InvoiceFileService {
         oneTimeInvoiceLineItemResponse.setLinks(getLinks(isLastResponse, continuationToken, USAGE_TYPE_ONE_TIME, invoiceNumber, pageSize));
         String invoiceFileJsonResponse = convertObjectToJson(objectMapper, oneTimeInvoiceLineItemResponse);
        
-        String oneTimeResponseFileName = ONE_TIME_JSON_RESPONSE_FILE.concat(String.valueOf(oneTimeJsonFileCount)).concat(".json");
+        String oneTimeResponseFileName = invoiceNumber.concat(ONE_TIME_JSON_RESPONSE_FILE).concat(String.valueOf(oneTimeJsonFileCount)).concat(".json");
         String invoiceLineJsonFilePathName = oneTimeInvoiceFilesPath.concat("/").concat(oneTimeResponseFileName);
         writeResponseToJsonFile(invoiceLineJsonFilePathName, invoiceFileJsonResponse);
         return continuationToken;
@@ -113,7 +113,7 @@ public class InvoiceFileServiceImpl implements InvoiceFileService {
         dailyRatedUsageItemsResponse.setLinks(getLinks(isLastResponse, continuationToken, USAGE_TYPE_DAILY, invoiceNumber, pageSize));
         String invoiceFileJsonResponse = convertObjectToJson(objectMapper, dailyRatedUsageItemsResponse);
         
-        String dailyRatedResponseFileName  = DAILY_RATED_JSON_REPONSE_FILE.concat(String.valueOf(dailyRatedJsonFileCount)).concat(JSON_FILE_EXTENTION);
+        String dailyRatedResponseFileName  = invoiceNumber.concat(DAILY_RATED_JSON_REPONSE_FILE).concat(String.valueOf(dailyRatedJsonFileCount)).concat(JSON_FILE_EXTENTION);
         String invoiceLineJsonFilePathName = dailyRatedInvoiceFilesPath.concat("/").concat(dailyRatedResponseFileName);
         writeResponseToJsonFile(invoiceLineJsonFilePathName, invoiceFileJsonResponse);
         return continuationToken;

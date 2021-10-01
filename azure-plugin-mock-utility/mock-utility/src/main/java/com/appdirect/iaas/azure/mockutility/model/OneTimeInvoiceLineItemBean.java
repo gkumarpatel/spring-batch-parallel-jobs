@@ -23,7 +23,7 @@ public class OneTimeInvoiceLineItemBean {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm:ss'Z'")
     private Date chargeEndDate;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm:ss'Z'")
-    private Date chargeStarDate;
+    private Date chargeStartDate;
     private String chargeType;
     private String currency;
     private String customerCountry;
@@ -48,7 +48,7 @@ public class OneTimeInvoiceLineItemBean {
     private String publisherId;
     private String publisherName;
     private int quantity;
-    private String resellerMpnId;
+    private String resellerMpnId = "0";
     private String reservationOrderId;
     private String skuId;
     private String skuName;
