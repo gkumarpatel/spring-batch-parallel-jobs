@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Service
 public class MappingFileServiceImpl implements MappingFileService {
 
+    public static final String LINE_ITEM = "line-item";
     private static String oneTimeMappingFilesPath;
     private static String dailyRatedMappingFilesPath;
 
@@ -137,7 +138,7 @@ public class MappingFileServiceImpl implements MappingFileService {
     private WireMockMappingResponse getWireMockMappingResponse(String oneTimeResponseFileName, WireMockMappingDelayDistribution delayDistribution) {
         WireMockMappingResponse wireMockMappingResponse = new WireMockMappingResponse();
         wireMockMappingResponse.setDelayDistribution(delayDistribution);
-        String bodyFileName = teamName.concat("/").concat(useCaseNamePrefix).concat("/").concat(oneTimeResponseFileName);
+        String bodyFileName = teamName.concat("/").concat(useCaseNamePrefix).concat("/").concat(LINE_ITEM).concat("/").concat(oneTimeResponseFileName);
         wireMockMappingResponse.setBodyFileName(bodyFileName);
         return wireMockMappingResponse;
     }

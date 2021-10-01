@@ -1,8 +1,8 @@
 reconcillation:
   dailyRated:
-    fileName: "MicrosoftRecncilationFIles/FuntionalTestData/G004733052_DailyRatedusageLineItems.csv"
+    fileName: "MicrosoftRecncilationFIles/FuntionalTestData/G005354172_DailyRatedusageLineItems.csv"
   oneTime:
-    fileName: "MicrosoftRecncilationFIles/FuntionalTestData/G004733052_OneTimeInvoiceLineItems.csv"
+    fileName: "MicrosoftRecncilationFIles/FuntionalTestData/G005354172_OneTimeInvoiceLineItems.csv"
 mock:
   numberOfLineItems: 20000
   microsoftLineItemFetchCount: 2000
@@ -20,7 +20,7 @@ responseFolder:
 wireMock:
   response:
     teamName: "/iaas"
-    useCaseName: "DT-Functional-Test"
+    useCaseName: "dt-csp-invoice" 
   delayDistribution:
     type: "lognormal"
     median: 2000
