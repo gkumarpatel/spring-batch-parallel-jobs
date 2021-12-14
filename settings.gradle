@@ -2,3 +2,6 @@ rootProject.name = 'iaas-poc'
 include 'spring-batch-parallel-jobs'
 include 'azure-plugin-mock-utility'
 include 'azure-plugin-mocks'
+include 'spring-batch-parallel-jobs:manager'
+findProject(':spring-batch-parallel-jobs:manager')?.name = 'manager'
+

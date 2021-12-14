@@ -1,14 +1,42 @@
 plugins {
+    id 'application'
+    id 'org.springframework.boot' version '2.2.7.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
     id 'java'
 }
 
+
 group 'iaas-poc'
 version '1.0-SNAPSHOT'
+sourceCompatibility = '11'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+    implementation 'org.springframework.boot:spring-boot-starter-integration'
+    implementation 'org.springframework.integration:spring-integration-kafka:3.2.1.RELEASE'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.batch:spring-batch-test'
+    testImplementation 'org.springframework.integration:spring-integration-test'
+    compile 'org.springframework.batch:spring-batch-integration'
+
+}
+
+test {
+    useJUnitPlatform()
+}
+
+task(manager, dependsOn: 'classes', type: JavaExec) {
+    main = 'spring.batch.integration.Manager'
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+task(worker, dependsOn: 'classes', type: JavaExec) {
+    main = 'spring.batch.integration.Worker'
+    classpath = sourceSets.main.runtimeClasspath
 }
