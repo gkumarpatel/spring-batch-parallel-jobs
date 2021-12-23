@@ -1,7 +1,7 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/usage_connector_local?useLegacyDatetimeCode=false&createDatabaseIfNotExist=true
+    url: jdbc:mysql://localhost:3306/usage_connector_poc?useLegacyDatetimeCode=false&createDatabaseIfNotExist=true
     username: root
     password: password
     hikari:
@@ -9,6 +9,12 @@ spring:
       maximum-pool-size: 5
       minimum-idle: 1
       register-mbeans: true
+  flyway:
+    locations: classpath:db/migration/common,classpath:db/migration/mysql
+  batch:
+    initialize-schema: never
+#    job:
+#      enabled: false
 kafka:
   confluent: true
   bootstrapServers: localhost:9092

@@ -33,6 +33,7 @@ dependencies {
     compile 'org.springframework.integration:spring-integration-core:5.3.1.RELEASE'
     compile 'org.springframework.cloud:spring-cloud-stream:3.0.9.RELEASE'
     implementation 'org.apache.kafka:kafka-clients:2.4.1'
+    compile 'org.flywaydb:flyway-core:5.2.4'
 }
 
 //bootJar {
