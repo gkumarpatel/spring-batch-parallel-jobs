@@ -10,7 +10,7 @@ spring:
       minimum-idle: 1
       register-mbeans: true
   flyway:
-    locations: classpath:db/migration/common,classpath:db/migration/mysql
+    locations: classpath:db/migration/mysql
   batch:
     initialize-schema: never
 #    job:

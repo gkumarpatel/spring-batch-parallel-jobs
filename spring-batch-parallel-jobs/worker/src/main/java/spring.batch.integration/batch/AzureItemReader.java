@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor
-public class AzureItemReader { //implements ItemStreamReader<InvoiceLineItem> {
+public class SimpleItemReader implements ItemStreamReader<String> {
 //  @Value("#{stepExecution}")
 //  private StepExecution stepExecution;
 //  @Value("${usage.connector.job.monthly.lineItemPageSize:100}")
