@@ -1,22 +1,41 @@
+buildscript {
+    ext {
+        avroVersion = "1.9.1"
+        springBootVersion = '2.2.7.RELEASE'
+        mpPlatformVersion = "1.2.0"
+        usageConnectorVersion = "0.0.117-develop"
+        usageEventsVersion = "0.1.58"
+        junitVersion = '4.12'
+        lombokVersion = '1.18.4'
+        dockerPluginVersion = '3.2.0'
+        appConfigureVersion = '1.0.66'
+        mockitoVersion = '3.7.7'
+    }
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        jcenter()
+        maven { url "https://plugins.gradle.org/m2/" }
+        maven { url "https://packages.confluent.io/maven/" }
+    }
+
+    dependencies {
+        classpath(
+                "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}",
+                "junit:junit:${junitVersion}"
+        )
+    }
+}
+
 plugins {
-    id 'application'
+    id 'idea'
+    //id 'application'
 //    id 'org.springframework.boot' version '2.2.7.RELEASE'
     //id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-    id 'java'
+    //id 'java'
 }
 
 group 'iaas-poc'
-version '1.0-SNAPSHOT'
-sourceCompatibility = '11'
-mainClassName = 'spring.batch.integration.Manager'
-
-repositories {
-    mavenCentral()
-    maven { url "https://plugins.gradle.org/m2/" }
-    maven { url "https://packages.confluent.io/maven/" }
-    jcenter()
-    gradlePluginPortal()
-}
 
 //dependencies {
 //    implementation 'org.springframework.boot:spring-boot-starter-batch'
@@ -35,6 +54,51 @@ repositories {
 //    implementation 'org.apache.kafka:kafka-clients:2.4.1'
 //    compile 'org.flywaydb:flyway-core:5.2.4'
 //}
+allprojects {
+
+    apply plugin: 'jacoco'
+
+    repositories {
+        mavenLocal()
+        maven { url "https://artifactory.appdirect.tools/artifactory/repo" }
+        mavenCentral()
+        jcenter()
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+    apply plugin: 'java'
+    apply plugin: 'idea'
+
+    clean.doFirst {
+        delete "${projectDir}/out/"
+    }
+}
+
+subprojects {
+    group project.parent.group
+    version project.parent.version
+    apply plugin: 'io.spring.dependency-management'
+
+    dependencyManagement {
+    }
+
+    test {
+        useJUnit()
+    }
+
+    dependencies {
+        compileOnly 'org.projectlombok:lombok'
+        annotationProcessor 'org.projectlombok:lombok'
+        compile 'org.springframework.batch:spring-batch-integration'
+        implementation 'org.springframework.integration:spring-integration-kafka:3.2.1.RELEASE'
+        implementation 'org.apache.kafka:kafka-clients:2.4.1'
+    }
+
+//    processResources {
+//        filesMatching("**/**.yml") {
+//            expand(project.properties)
+//        }
+//    }
+}
 
 //bootJar {
 //    manifest {

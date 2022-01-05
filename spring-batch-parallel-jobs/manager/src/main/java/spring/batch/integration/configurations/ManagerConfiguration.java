@@ -13,7 +13,6 @@ import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.integration.config.annotation.EnableBatchIntegration;
 import org.springframework.batch.integration.partition.RemotePartitioningManagerStepBuilderFactory;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.channel.DirectChannel;
@@ -37,8 +36,7 @@ public class ManagerConfiguration {
 	@Bean
 	public IntegrationFlow outboundFlowToWorker(
 		ProducerFactory springBatchProducerFactory,
-		DirectChannel outgoingRequestsToWorkers,
-		KafkaProperties kafkaProperties) {
+		DirectChannel outgoingRequestsToWorkers) {
 
 		return IntegrationFlows
 			.from(outgoingRequestsToWorkers)
@@ -56,8 +54,7 @@ public class ManagerConfiguration {
 	@Bean
 	public IntegrationFlow inboundFlowFromWorker(
 		ConsumerFactory springBatchConsumerFactory,
-		DirectChannel incomingRepliesFromWorkers,
-		KafkaProperties kafkaProperties) {
+		DirectChannel incomingRepliesFromWorkers) {
 
 		ConsumerProperties consumerProperties = new ConsumerProperties("spring-batch-integration-replies");
 			return IntegrationFlows
@@ -82,8 +79,8 @@ public class ManagerConfiguration {
 		DirectChannel incomingRepliesFromWorkers,
 		ObjectProvider<Partitioner> partitionerProvider) {
 
-		return managerStepBuilderFactory.get("manager")
-			.<String, String>partitioner("worker", partitionerProvider.getIfAvailable())
+		return managerStepBuilderFactory.get("managerStep")
+			.<String, String>partitioner("workerStep", partitionerProvider.getIfAvailable())
 			//.gridSize(usageJobProperties.getMonthly().getGridSize())
 			.outputChannel(outgoingRequestsToWorkers)
 			.inputChannel(incomingRepliesFromWorkers)

@@ -1,43 +1,9 @@
-plugins {
-    id 'application'
-    id 'org.springframework.boot' version '2.2.7.RELEASE'
-    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-    id 'java'
-}
-
-group 'iaas-poc'
-version '1.0-SNAPSHOT'
-sourceCompatibility = '11'
-mainClassName = 'spring.batch.integration.Manager'
-
-repositories {
-    mavenCentral()
-    maven { url "https://plugins.gradle.org/m2/" }
-    maven { url "https://packages.confluent.io/maven/" }
-    jcenter()
-    gradlePluginPortal()
-}
+apply plugin: 'org.springframework.boot'
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-batch'
 }
 
-//bootJar {
-//    manifest {
-//        attributes 'Main-Class': 'org.springframework.boot.loader.PropertiesLauncher'
-//    }
-//}
-
 test {
     useJUnitPlatform()
 }
-
-//task(manager, dependsOn: 'classes', type: JavaExec) {
-//    main = 'spring.batch.integration.Manager'
-//    classpath = sourceSets.main.runtimeClasspath
-//}
-//
-//task(worker, dependsOn: 'classes', type: JavaExec) {
-//    main = 'spring.batch.integration.Worker'
-//    classpath = sourceSets.main.runtimeClasspath
-//}
