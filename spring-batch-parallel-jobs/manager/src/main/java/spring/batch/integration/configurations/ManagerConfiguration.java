@@ -1,5 +1,7 @@
 package spring.batch.integration.configurations;
 
+import static spring.batch.integration.configurations.SpringBatchKafkaConfiguration.SPRING_BATCH_INTEGRATION_REQUESTS;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.batch.core.Job;
@@ -23,6 +25,8 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.ConsumerProperties;
 
+import spring.batch.integration.kafka.KafkaProperties;
+
 @Slf4j
 @EnableBatchProcessing
 @EnableBatchIntegration
@@ -36,12 +40,13 @@ public class ManagerConfiguration {
 	@Bean
 	public IntegrationFlow outboundFlowToWorker(
 		ProducerFactory springBatchProducerFactory,
-		DirectChannel outgoingRequestsToWorkers) {
+		DirectChannel outgoingRequestsToWorkers,
+		KafkaProperties kafkaProperties) {
 
 		return IntegrationFlows
 			.from(outgoingRequestsToWorkers)
 			.handle(Kafka.outboundChannelAdapter(springBatchProducerFactory)
-				.topic("spring-batch-integration-requests"))
+				.topic(kafkaProperties.getOptions().get(SPRING_BATCH_INTEGRATION_REQUESTS).getTopic()))
 			.get();
 	}
 
@@ -54,9 +59,10 @@ public class ManagerConfiguration {
 	@Bean
 	public IntegrationFlow inboundFlowFromWorker(
 		ConsumerFactory springBatchConsumerFactory,
-		DirectChannel incomingRepliesFromWorkers) {
+		DirectChannel incomingRepliesFromWorkers,
+		KafkaProperties kafkaProperties) {
 
-		ConsumerProperties consumerProperties = new ConsumerProperties("spring-batch-integration-replies");
+		ConsumerProperties consumerProperties = new ConsumerProperties(kafkaProperties.getOptions().get(SPRING_BATCH_INTEGRATION_REQUESTS).getTopic());
 			return IntegrationFlows
 			.from(Kafka.inboundChannelAdapter(springBatchConsumerFactory, consumerProperties))
 			.channel(incomingRepliesFromWorkers)

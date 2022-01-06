@@ -1,0 +1,44 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/usage_connector_poc?useLegacyDatetimeCode=false&createDatabaseIfNotExist=true
+    username: root
+    password: password
+    hikari:
+      auto-commit: false
+      maximum-pool-size: 5
+      minimum-idle: 1
+      register-mbeans: true
+  flyway:
+    locations: classpath:db/migration/mysql
+  batch:
+    initialize-schema: never
+#    job:
+#      enabled: false
+kafka:
+  confluent: true
+  bootstrapServers: localhost:9092
+  acks: 'all'
+  schemaRegistry:
+    url: http://localhost:8082
+    autoRegister: false
+    useLatestVersion: true
+    nameStrategy: io.confluent.kafka.serializers.subject.TopicNameStrategy
+    enabled: true
+  options:
+    spring-batch-integration-requests:
+      topic: iaas-usage-spring-batch-requests.default
+      groupId: requests-group
+      clientId: requests-client
+      keySerializer: org.apache.kafka.common.serialization.StringSerializer
+      valueSerializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      keyDeserializer: org.apache.kafka.common.serialization.StringDeserializer
+      valueDeserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+    spring-batch-integration-replies:
+      topic: iaas-usage-spring-batch-replies.default
+      groupId: requests-group
+      clientId: requests-client
+      keySerializer: org.apache.kafka.common.serialization.StringSerializer
+      valueSerializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      keyDeserializer: org.apache.kafka.common.serialization.StringDeserializer
+      valueDeserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer

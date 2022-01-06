@@ -1,10 +1,12 @@
 package spring.batch.integration.configurations;
 
+import static spring.batch.integration.configurations.SpringBatchKafkaConfiguration.SPRING_BATCH_INTEGRATION_REPLIES;
+import static spring.batch.integration.configurations.SpringBatchKafkaConfiguration.SPRING_BATCH_INTEGRATION_REQUESTS;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.batch.core.step.builder.FaultTolerantStepBuilder;
 import org.springframework.batch.core.step.builder.SimpleStepBuilder;
 import org.springframework.batch.core.step.builder.TaskletStepBuilder;
 import org.springframework.batch.core.step.skip.SkipPolicy;
@@ -24,10 +26,10 @@ import org.springframework.integration.kafka.dsl.Kafka;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.ConsumerProperties;
-import org.springframework.lang.Nullable;
 import org.springframework.retry.RetryPolicy;
 import org.springframework.retry.backoff.BackOffPolicy;
-import org.springframework.retry.policy.SimpleRetryPolicy;
+
+import spring.batch.integration.kafka.KafkaProperties;
 
 @Slf4j
 @EnableBatchProcessing
@@ -47,7 +49,7 @@ public class WorkerConfiguration {
 		DirectChannel incomingRequestsFromManager,
 		KafkaProperties kafkaProperties) {
 
-		ConsumerProperties consumerProperties = new ConsumerProperties("spring-batch-integration-requests");
+		ConsumerProperties consumerProperties = new ConsumerProperties(kafkaProperties.getOptions().get(SPRING_BATCH_INTEGRATION_REQUESTS).getTopic());
 		return IntegrationFlows
 			.from(Kafka.inboundChannelAdapter(springBatchConsumerFactory, consumerProperties))
 			.channel(incomingRequestsFromManager)
@@ -62,12 +64,13 @@ public class WorkerConfiguration {
 	@Bean
 	public IntegrationFlow outboundFlowToManager(
 		ProducerFactory springBatchProducerFactory,
-		DirectChannel outgoingRepliesToManager) {
+		DirectChannel outgoingRepliesToManager,
+		KafkaProperties kafkaProperties) {
 
 		return IntegrationFlows
 			.from(outgoingRepliesToManager)
 			.handle(Kafka.outboundChannelAdapter(springBatchProducerFactory)
-				.topic("spring-batch-integration-replies"))
+				.topic(kafkaProperties.getOptions().get(SPRING_BATCH_INTEGRATION_REPLIES).getTopic()))
 			.get();
 	}
 
@@ -75,57 +78,35 @@ public class WorkerConfiguration {
 	public Step worker(
 		RemotePartitioningWorkerStepBuilderFactory workerStepBuilderFactory,
 //		UsageJobProperties usageJobProperties,
-		DefaultStepExecutionListener defaultStepExecutionListener,
-		@Nullable TimerStepExecutionListener timerStepExecutionListener,
+		//DefaultStepExecutionListener defaultStepExecutionListener,
 		ObjectProvider<Tasklet> taskletProvider,
 		ObjectProvider<ItemStreamReader> itemStreamReaderProvider,
 		ObjectProvider<ItemProcessor> itemProcessorProvider,
 		ObjectProvider<ItemWriter> itemWriterProvider,
 		ObjectProvider<RetryPolicy> retryPolicyProvider,
 		ObjectProvider<SkipPolicy> skipPolicyProvider,
-		ObjectProvider<BackOffPolicy> backoffPolicyProvider,
-		@Nullable ReaderTimeListener readerTimeListener,
-		@Nullable WriterTimeListener writerTimeListener,
-		@Nullable ProcessorTimeListener processorTimeListener) {
+		ObjectProvider<BackOffPolicy> backoffPolicyProvider
+	) {
 
 		log.info("Creating worker step");
 
 		TaskletStepBuilder taskletStepBuilder;
 
-		if (usageJobProperties.getMonthly().isTaskletBased()) {
-			taskletStepBuilder = workerStepBuilderFactory.get(MONTHLY_JOB_WORKER_STEP_NAME)
-				.listener(defaultStepExecutionListener)
-				.inputChannel(incomingRequestsFromManager())
-				.outputChannel(outgoingRepliesToManager())
-				.tasklet(taskletProvider.getObject());
-			if (timerStepExecutionListener != null) {
-				taskletStepBuilder.listener(timerStepExecutionListener);
-			}
-			return taskletStepBuilder.build();
-		}
-
-		SimpleStepBuilder simpleStepBuilder = workerStepBuilderFactory.get(MONTHLY_JOB_WORKER_STEP_NAME)
-			.listener(defaultStepExecutionListener)
+		SimpleStepBuilder simpleStepBuilder = workerStepBuilderFactory.get("workerStep")
+			//.listener(defaultStepExecutionListener)
 			.inputChannel(incomingRequestsFromManager())
 			.outputChannel(outgoingRepliesToManager())
-			.<String, String>chunk(usageJobProperties.getMonthly().getChunkSize())
+			.<String, String>chunk(100)
 			.reader(itemStreamReaderProvider.getObject())
 			.processor(itemProcessorProvider.getObject())
-			.writer(itemWriterProvider.getObject())
-			.listener(writerTimeListener)
-			.listener(readerTimeListener)
-			.listener(processorTimeListener);
-
-		if (timerStepExecutionListener != null) {
-			simpleStepBuilder.listener(timerStepExecutionListener);
-		}
+			.writer(itemWriterProvider.getObject());
 		return simpleStepBuilder.build();
 //		return faultTolerantStepBuilder(usageJobProperties,
 //			simpleStepBuilder, retryPolicyProvider, skipPolicyProvider, backoffPolicyProvider)
 //			.build();
 	}
 
-	private FaultTolerantStepBuilder faultTolerantStepBuilder(
+	/*private FaultTolerantStepBuilder faultTolerantStepBuilder(
 		UsageJobProperties usageJobProperties,
 		SimpleStepBuilder simpleStepBuilder,
 		ObjectProvider<RetryPolicy> retryPolicyProvider,
@@ -168,7 +149,7 @@ public class WorkerConfiguration {
 		}
 
 		return faultTolerantStepBuilder;
-	}
+	}*/
 
 	private Class uncheckedClassForName(String className) {
 		try {
