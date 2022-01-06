@@ -1,9 +1,10 @@
 apply plugin: 'org.springframework.boot'
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-batch'
+    compile project(":spring-batch-parallel-jobs:common")
 }
-
-test {
-    useJUnitPlatform()
+bootJar {
+    manifest {
+        attributes 'Main-Class': 'org.springframework.boot.loader.PropertiesLauncher'
+    }
 }

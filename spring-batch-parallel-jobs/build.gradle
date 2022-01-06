@@ -37,33 +37,15 @@ plugins {
 
 group 'iaas-poc'
 
-//dependencies {
-//    implementation 'org.springframework.boot:spring-boot-starter-batch'
-//    implementation 'org.springframework.boot:spring-boot-starter-integration'
-//    implementation 'org.springframework.integration:spring-integration-kafka:3.2.1.RELEASE'
-//    compileOnly 'org.projectlombok:lombok'
-//    annotationProcessor 'org.projectlombok:lombok'
-//    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-//    testImplementation 'org.springframework.batch:spring-batch-test'
-//    testImplementation 'org.springframework.integration:spring-integration-test'
-//    compile 'io.confluent:kafka-avro-serializer:6.0.0'
-//    compile 'org.springframework.batch:spring-batch-integration'
-//    compile 'mysql:mysql-connector-java:8.0.22'
-//    compile 'org.springframework.integration:spring-integration-core:5.3.1.RELEASE'
-//    compile 'org.springframework.cloud:spring-cloud-stream:3.0.9.RELEASE'
-//    implementation 'org.apache.kafka:kafka-clients:2.4.1'
-//    compile 'org.flywaydb:flyway-core:5.2.4'
-//}
 allprojects {
 
     apply plugin: 'jacoco'
 
     repositories {
-        mavenLocal()
-        maven { url "https://artifactory.appdirect.tools/artifactory/repo" }
         mavenCentral()
         jcenter()
         maven { url "https://plugins.gradle.org/m2/" }
+        maven { url "https://packages.confluent.io/maven/" }
     }
     apply plugin: 'java'
     apply plugin: 'idea'
@@ -76,6 +58,7 @@ allprojects {
 subprojects {
     group project.parent.group
     version project.parent.version
+
     apply plugin: 'io.spring.dependency-management'
 
     dependencyManagement {
@@ -86,11 +69,12 @@ subprojects {
     }
 
     dependencies {
-        compileOnly 'org.projectlombok:lombok'
-        annotationProcessor 'org.projectlombok:lombok'
-        compile 'org.springframework.batch:spring-batch-integration'
+        compileOnly 'org.projectlombok:lombok:1.18.4'
+        annotationProcessor 'org.projectlombok:lombok:1.18.4'
+        compile 'org.springframework.batch:spring-batch-integration:4.2.4.RELEASE'
         implementation 'org.springframework.integration:spring-integration-kafka:3.2.1.RELEASE'
         implementation 'org.apache.kafka:kafka-clients:2.4.1'
+        implementation 'org.springframework.boot:spring-boot-starter-batch:2.2.7.RELEASE'
     }
 
 //    processResources {

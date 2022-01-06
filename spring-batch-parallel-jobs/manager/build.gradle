@@ -1,7 +1,7 @@
 apply plugin: 'org.springframework.boot'
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-batch'
+    compile project(":spring-batch-parallel-jobs:common")
     //implementation 'org.springframework.boot:spring-boot-starter-integration'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.batch:spring-batch-test'

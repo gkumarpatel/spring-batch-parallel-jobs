@@ -1,4 +1,4 @@
-package spring.batch.integration.configurations;
+package spring.batch.integration.configuration;
 
 import javax.sql.DataSource;
 

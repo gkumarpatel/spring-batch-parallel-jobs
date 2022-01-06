@@ -1,4 +1,4 @@
-package spring.batch.integration.configurations;
+package spring.batch.integration.configuration;
 
 import static org.apache.kafka.clients.CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG;
 import static org.apache.kafka.clients.CommonClientConfigs.CLIENT_ID_CONFIG;

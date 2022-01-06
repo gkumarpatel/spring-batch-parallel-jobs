@@ -1,7 +1,7 @@
-package spring.batch.integration.configurations;
+package spring.batch.integration.configuration;
 
-import static spring.batch.integration.configurations.SpringBatchKafkaConfiguration.SPRING_BATCH_INTEGRATION_REPLIES;
-import static spring.batch.integration.configurations.SpringBatchKafkaConfiguration.SPRING_BATCH_INTEGRATION_REQUESTS;
+import static spring.batch.integration.configuration.SpringBatchKafkaConfiguration.SPRING_BATCH_INTEGRATION_REPLIES;
+import static spring.batch.integration.configuration.SpringBatchKafkaConfiguration.SPRING_BATCH_INTEGRATION_REQUESTS;
 
 import lombok.extern.slf4j.Slf4j;
 
