@@ -2,9 +2,17 @@ apply plugin: 'org.springframework.boot'
 
 dependencies {
     compile project(":spring-batch-parallel-jobs:common")
+    //implementation 'org.springframework.boot:spring-boot-starter-integration'
+    //testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    //testImplementation 'org.springframework.batch:spring-batch-test'
+    //testImplementation 'org.springframework.integration:spring-integration-test'
+
+    //compile 'mysql:mysql-connector-java:8.0.22'
+    //compile 'org.springframework.integration:spring-integration-core:5.3.1.RELEASE'
+    //compile 'org.springframework.cloud:spring-cloud-stream:3.0.9.RELEASE'
+    //compile 'org.flywaydb:flyway-core:5.2.4'
 }
-bootJar {
-    manifest {
-        attributes 'Main-Class': 'org.springframework.boot.loader.PropertiesLauncher'
-    }
+
+test {
+    useJUnitPlatform()
 }

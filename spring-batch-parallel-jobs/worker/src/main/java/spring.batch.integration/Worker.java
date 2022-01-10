@@ -8,8 +8,7 @@ import org.springframework.context.annotation.ComponentScan;
 @ComponentScan(basePackages = {"spring.batch.integration"})
 public class Worker {
 	public static void main(String[] args) {
-		SpringApplication app = new SpringApplication(Worker.class);
-		app.run(args);
+		SpringApplication.run(Worker.class);
 	}
 }
 

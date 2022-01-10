@@ -3,6 +3,8 @@ package spring.batch.integration.configuration;
 import static spring.batch.integration.configuration.SpringBatchKafkaConfiguration.SPRING_BATCH_INTEGRATION_REPLIES;
 import static spring.batch.integration.configuration.SpringBatchKafkaConfiguration.SPRING_BATCH_INTEGRATION_REQUESTS;
 
+import java.util.List;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.batch.core.Step;
@@ -72,6 +74,25 @@ public class WorkerConfiguration {
 			.handle(Kafka.outboundChannelAdapter(springBatchProducerFactory)
 				.topic(kafkaProperties.getOptions().get(SPRING_BATCH_INTEGRATION_REPLIES).getTopic()))
 			.get();
+	}
+
+	@Bean
+	public ItemProcessor itemProcessor() {
+		return new ItemProcessor() {
+			@Override
+			public Object process(Object item) throws Exception {
+				return item;
+			}
+		};
+	}
+
+	@Bean ItemWriter itemWriter(){
+		return new ItemWriter() {
+			@Override
+			public void write(List items) throws Exception {
+				items.forEach(item -> log.info("Writing item={}", item));
+			}
+		};
 	}
 
 	@Bean(name = "workerStep")
