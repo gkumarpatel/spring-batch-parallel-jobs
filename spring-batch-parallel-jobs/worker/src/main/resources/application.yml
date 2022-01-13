@@ -13,8 +13,8 @@ spring:
     locations: classpath:db/migration/mysql
   batch:
     initialize-schema: never
-#    job:
-#      enabled: false
+    job:
+      enabled: false
 kafka:
   confluent: true
   bootstrapServers: localhost:9092
@@ -36,8 +36,8 @@ kafka:
       valueDeserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
     spring-batch-integration-replies:
       topic: iaas-usage-spring-batch-replies.default
-      groupId: requests-group
-      clientId: requests-client
+      groupId: replies-group
+      clientId: replies-client
       keySerializer: org.apache.kafka.common.serialization.StringSerializer
       valueSerializer: io.confluent.kafka.serializers.KafkaAvroSerializer
       keyDeserializer: org.apache.kafka.common.serialization.StringDeserializer

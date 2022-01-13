@@ -1,18 +1,30 @@
 package spring.batch.integration.configuration;
 
+import static org.apache.kafka.clients.CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG;
+import static org.apache.kafka.clients.CommonClientConfigs.CLIENT_ID_CONFIG;
+import static org.apache.kafka.clients.CommonClientConfigs.GROUP_ID_CONFIG;
+import static org.apache.kafka.clients.producer.ProducerConfig.ACKS_CONFIG;
+import static spring.batch.integration.configuration.SpringBatchKafkaConfiguration.SPRING_BATCH_INTEGRATION_REPLIES;
 import static spring.batch.integration.configuration.SpringBatchKafkaConfiguration.SPRING_BATCH_INTEGRATION_REQUESTS;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.integration.config.annotation.EnableBatchIntegration;
+import org.springframework.batch.integration.partition.MessageChannelPartitionHandler;
 import org.springframework.batch.integration.partition.RemotePartitioningManagerStepBuilderFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
@@ -22,9 +34,14 @@ import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.kafka.dsl.Kafka;
 import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.ConsumerProperties;
+import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.springframework.kafka.support.serializer.JsonSerializer;
 
+import spring.batch.integration.kafka.KafkaConfigurationOptionsProvider;
 import spring.batch.integration.kafka.KafkaProperties;
 
 @Slf4j
@@ -39,13 +56,13 @@ public class ManagerConfiguration {
 
 	@Bean
 	public IntegrationFlow outboundFlowToWorker(
-		ProducerFactory springBatchProducerFactory,
+		ProducerFactory requestProducerFactory,
 		DirectChannel outgoingRequestsToWorkers,
 		KafkaProperties kafkaProperties) {
 
 		return IntegrationFlows
 			.from(outgoingRequestsToWorkers)
-			.handle(Kafka.outboundChannelAdapter(springBatchProducerFactory)
+			.handle(Kafka.outboundChannelAdapter(requestProducerFactory)
 				.topic(kafkaProperties.getOptions().get(SPRING_BATCH_INTEGRATION_REQUESTS).getTopic()))
 			.get();
 	}
@@ -58,13 +75,13 @@ public class ManagerConfiguration {
 
 	@Bean
 	public IntegrationFlow inboundFlowFromWorker(
-		ConsumerFactory springBatchConsumerFactory,
+		ConsumerFactory repliesConsumerFactory,
 		DirectChannel incomingRepliesFromWorkers,
 		KafkaProperties kafkaProperties) {
 
-		ConsumerProperties consumerProperties = new ConsumerProperties(kafkaProperties.getOptions().get(SPRING_BATCH_INTEGRATION_REQUESTS).getTopic());
+		ConsumerProperties consumerProperties = new ConsumerProperties(kafkaProperties.getOptions().get(SPRING_BATCH_INTEGRATION_REPLIES).getTopic());
 			return IntegrationFlows
-			.from(Kafka.inboundChannelAdapter(springBatchConsumerFactory, consumerProperties))
+			.from(Kafka.inboundChannelAdapter(repliesConsumerFactory, consumerProperties))
 			.channel(incomingRepliesFromWorkers)
 			.get();
 	}
@@ -75,6 +92,12 @@ public class ManagerConfiguration {
 		JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor = new JobRegistryBeanPostProcessor();
 		jobRegistryBeanPostProcessor.setJobRegistry(jobRegistry);
 		return jobRegistryBeanPostProcessor;
+	}
+
+	@Bean
+	@StepScope
+	public MessageChannelPartitionHandler messageChannelPartitionHandler(){
+		return new MessageChannelPartitionHandler();
 	}
 
 	@Bean
@@ -95,18 +118,47 @@ public class ManagerConfiguration {
 	}
 
 	@Bean
-	public Job monthlyUsageJob(
+	public Job parallelJob(
 		JobBuilderFactory jobBuilderFactory,
 		Step importUsageJobManager
-		//,
-		//JobExecutionListener jobExecutionListener
 	) {
 
 		return jobBuilderFactory.get("Parallel Job")
 			.incrementer(new RunIdIncrementer())
 			.flow(importUsageJobManager)
 			.end()
-			//.listener(jobExecutionListener)
 			.build();
+	}
+
+	@Bean
+	public ProducerFactory requestProducerFactory(
+		KafkaProperties kafkaProperties,
+		KafkaConfigurationOptionsProvider kafkaConfigurationOptionsProvider,
+		JsonSerializer stepExecutionSerializer
+	) {
+		KafkaProperties.Options sender = kafkaProperties.getOptions().get(SPRING_BATCH_INTEGRATION_REQUESTS);
+		Map<String, Object> producerProps = new HashMap<>();
+		producerProps.put(BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
+		producerProps.put(CLIENT_ID_CONFIG, kafkaConfigurationOptionsProvider.getClientId(sender));
+		producerProps.put(ACKS_CONFIG, kafkaProperties.getAcks());
+
+		producerProps.putAll(kafkaConfigurationOptionsProvider.kafkaSecurityConfig());
+
+		return new DefaultKafkaProducerFactory(producerProps, new StringSerializer(), stepExecutionSerializer);
+	}
+
+	@Bean
+	public ConsumerFactory repliesConsumerFactory(KafkaProperties kafkaProperties, KafkaConfigurationOptionsProvider kafkaConfigurationOptionsProvider, JsonDeserializer stepExecutionDeSerializer) {
+
+		KafkaProperties.Options receiver = kafkaProperties.getOptions().get(SPRING_BATCH_INTEGRATION_REPLIES);
+
+		Map<String, Object> consumerProps = new HashMap<>();
+		consumerProps.put(BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
+		consumerProps.put(CLIENT_ID_CONFIG, kafkaConfigurationOptionsProvider.getClientId(receiver));
+		consumerProps.put(GROUP_ID_CONFIG, kafkaConfigurationOptionsProvider.getGroupId(receiver));
+
+		consumerProps.putAll(kafkaConfigurationOptionsProvider.kafkaSecurityConfig());
+
+		return new DefaultKafkaConsumerFactory(consumerProps, new StringDeserializer(), stepExecutionDeSerializer);
 	}
 }

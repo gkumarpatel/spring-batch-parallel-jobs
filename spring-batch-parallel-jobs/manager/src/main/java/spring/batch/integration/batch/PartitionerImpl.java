@@ -26,7 +26,7 @@ public class PartitionerImpl implements Partitioner {
 		log.info("### Partitioning for JobExecutionId:{}", stepExecution.getJobExecutionId());
 		Map<String, ExecutionContext> partitions = new HashMap<String, ExecutionContext>();
 		//Number of partitions = 3
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < 1; i++) {
 			ExecutionContext executionContext = new ExecutionContext();
 			executionContext.putInt("index", (i + 1));
 			partitions.put("partition" + (i + 1), executionContext);
