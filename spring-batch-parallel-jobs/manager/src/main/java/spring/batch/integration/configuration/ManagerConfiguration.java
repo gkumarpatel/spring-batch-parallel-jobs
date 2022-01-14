@@ -19,17 +19,21 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.partition.PartitionHandler;
 import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.integration.config.annotation.EnableBatchIntegration;
 import org.springframework.batch.integration.partition.MessageChannelPartitionHandler;
-import org.springframework.batch.integration.partition.RemotePartitioningManagerStepBuilderFactory;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
 import org.springframework.integration.kafka.dsl.Kafka;
@@ -49,6 +53,10 @@ import spring.batch.integration.kafka.KafkaProperties;
 @EnableBatchIntegration
 @Configuration
 public class ManagerConfiguration {
+
+	@Autowired
+	public StepBuilderFactory stepBuilderFactory;
+
 	@Bean
 	public DirectChannel outgoingRequestsToWorkers() {
 		return new DirectChannel();
@@ -67,7 +75,6 @@ public class ManagerConfiguration {
 			.get();
 	}
 
-
 	@Bean
 	public DirectChannel incomingRepliesFromWorkers() {
 		return new DirectChannel();
@@ -80,7 +87,7 @@ public class ManagerConfiguration {
 		KafkaProperties kafkaProperties) {
 
 		ConsumerProperties consumerProperties = new ConsumerProperties(kafkaProperties.getOptions().get(SPRING_BATCH_INTEGRATION_REPLIES).getTopic());
-			return IntegrationFlows
+		return IntegrationFlows
 			.from(Kafka.inboundChannelAdapter(repliesConsumerFactory, consumerProperties))
 			.channel(incomingRepliesFromWorkers)
 			.get();
@@ -96,25 +103,69 @@ public class ManagerConfiguration {
 
 	@Bean
 	@StepScope
-	public MessageChannelPartitionHandler messageChannelPartitionHandler(){
+	public MessageChannelPartitionHandler messageChannelPartitionHandler() {
 		return new MessageChannelPartitionHandler();
 	}
 
 	@Bean
 	public Step importUsageJobManager(
-		RemotePartitioningManagerStepBuilderFactory managerStepBuilderFactory,
+		StepBuilderFactory managerStepBuilderFactory,
 		//StepExecutionListener stepExecutionListener,
 		DirectChannel outgoingRequestsToWorkers,
 		DirectChannel incomingRepliesFromWorkers,
-		ObjectProvider<Partitioner> partitionerProvider) {
+		ObjectProvider<Partitioner> partitionerProvider,
+		PartitionHandler partitionHandler) {
 
 		return managerStepBuilderFactory.get("managerStep")
 			.<String, String>partitioner("workerStep", partitionerProvider.getIfAvailable())
+			.partitionHandler(partitionHandler	)
 			//.gridSize(usageJobProperties.getMonthly().getGridSize())
-			.outputChannel(outgoingRequestsToWorkers)
-			.inputChannel(incomingRepliesFromWorkers)
+			//.outputChannel(outgoingRequestsToWorkers)
+			//inputChannel(incomingRepliesFromWorkers)
 			//.listener(stepExecutionListener)
 			.build();
+	}
+
+//	@Bean
+//	public Step step1(PartitionHandler partitionHandler,
+//										ObjectProvider<Partitioner> partitionerProvider) throws Exception {
+//		return this.stepBuilderFactory.get("managerStep")
+//			.partitioner("workerStep", partitionerProvider.getIfAvailable())
+//			//.step(workerStep())
+//			.partitionHandler(partitionHandler)
+//			.build();
+//	}
+
+	@Bean
+	public PartitionHandler partitionHandler(DirectChannel outgoingRequestsToWorkers,
+																					 QueueChannel incomingRepliesQueue) {
+		MessageChannelPartitionHandler partitionHandler = new MessageChannelPartitionHandler();
+		partitionHandler.setStepName("workerStep");
+		partitionHandler.setGridSize(6);
+		MessagingTemplate template = new MessagingTemplate();
+		template.setDefaultChannel(outgoingRequestsToWorkers);
+		partitionHandler.setMessagingOperations(template);
+		partitionHandler.setReplyChannel(incomingRepliesQueue);
+
+		return partitionHandler;
+	}
+
+	@Bean
+	public QueueChannel incomingRepliesQueue() {
+		return new QueueChannel();
+	}
+
+	@Bean
+	public IntegrationFlow standardIntegrationFlow(
+		DirectChannel incomingRepliesFromWorkers,
+		PartitionHandler partitionHandler,
+		QueueChannel incomingRepliesQueue) {
+
+		return 	IntegrationFlows
+			.from(incomingRepliesFromWorkers)
+			.aggregate(aggregatorSpec -> aggregatorSpec.processor(partitionHandler))
+			.channel(incomingRepliesQueue)
+			.get();
 	}
 
 	@Bean
