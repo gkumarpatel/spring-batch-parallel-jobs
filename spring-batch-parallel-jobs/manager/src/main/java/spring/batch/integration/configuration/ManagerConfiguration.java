@@ -19,6 +19,7 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.partition.PartitionHandler;
 import org.springframework.batch.core.partition.support.Partitioner;
@@ -53,7 +54,7 @@ import spring.batch.integration.kafka.KafkaProperties;
 public class ManagerConfiguration {
 
 	@Bean
-	//@StepScope
+	@StepScope
 	public PartitionHandler partitionHandler(DirectChannel outgoingRequestsToWorkers,
 																					 QueueChannel incomingRepliesQueue
 	) {
@@ -128,11 +129,11 @@ public class ManagerConfiguration {
 		DirectChannel outgoingRequestsToWorkers,
 		DirectChannel incomingRepliesFromWorkers,
 		ObjectProvider<Partitioner> partitionerProvider,
-		PartitionHandler partitionHandler) {
+		QueueChannel incomingRepliesQueue) {
 
 		return managerStepBuilderFactory.get("managerStep")
 			.<String, String>partitioner("workerStep", partitionerProvider.getIfAvailable())
-			.partitionHandler(partitionHandler)
+			.partitionHandler(partitionHandler(outgoingRequestsToWorkers, incomingRepliesQueue))
 			//.gridSize(usageJobProperties.getMonthly().getGridSize())
 			//.outputChannel(outgoingRequestsToWorkers)
 			//inputChannel(incomingRepliesFromWorkers)
