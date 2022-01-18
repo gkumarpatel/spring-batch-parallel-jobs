@@ -16,24 +16,21 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
-import org.springframework.batch.core.StepExecution;
-import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.partition.PartitionHandler;
 import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.integration.config.annotation.EnableBatchIntegration;
 import org.springframework.batch.integration.partition.MessageChannelPartitionHandler;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.config.AggregatorFactoryBean;
 import org.springframework.integration.core.MessagingTemplate;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
@@ -56,6 +53,27 @@ import spring.batch.integration.kafka.KafkaProperties;
 public class ManagerConfiguration {
 
 	@Bean
+	//@StepScope
+	public PartitionHandler partitionHandler(DirectChannel outgoingRequestsToWorkers,
+																					 QueueChannel incomingRepliesQueue
+	) {
+		MessageChannelPartitionHandler parallelJobPartitionHandler = new MessageChannelPartitionHandler();
+		parallelJobPartitionHandler.setStepName("workerStep");
+		parallelJobPartitionHandler.setGridSize(6);
+		MessagingTemplate template = new MessagingTemplate();
+		template.setDefaultChannel(outgoingRequestsToWorkers);
+		parallelJobPartitionHandler.setMessagingOperations(template);
+		parallelJobPartitionHandler.setReplyChannel(incomingRepliesQueue);
+
+		return parallelJobPartitionHandler;
+	}
+
+	@Bean
+	public QueueChannel incomingRepliesQueue() {
+		return new QueueChannel();
+	}
+
+	@Bean
 	public DirectChannel outgoingRequestsToWorkers() {
 		return new DirectChannel();
 	}
@@ -74,6 +92,18 @@ public class ManagerConfiguration {
 	}
 
 	@Bean
+	@ServiceActivator(inputChannel = "incomingRepliesFromWorkers")
+	public AggregatorFactoryBean partitioningMessageHandler(DirectChannel outgoingRequestsToWorkers,
+																													QueueChannel incomingRepliesQueue
+	) throws Exception {
+		AggregatorFactoryBean aggregatorFactoryBean = new AggregatorFactoryBean();
+		aggregatorFactoryBean.setProcessorBean(partitionHandler(outgoingRequestsToWorkers,incomingRepliesQueue));
+		aggregatorFactoryBean.setOutputChannel(incomingRepliesQueue);
+		// configure other propeties of the aggregatorFactoryBean
+		return aggregatorFactoryBean;
+	}
+
+	@Bean
 	public DirectChannel incomingRepliesFromWorkers() {
 		return new DirectChannel();
 	}
@@ -89,36 +119,6 @@ public class ManagerConfiguration {
 			.from(Kafka.inboundChannelAdapter(repliesConsumerFactory, consumerProperties))
 			.channel(incomingRepliesFromWorkers)
 			.get();
-	}
-
-	@Bean
-	public QueueChannel incomingRepliesQueue() {
-		return new QueueChannel();
-	}
-
-	@Bean
-	public JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor(JobRegistry jobRegistry) {
-		// this ensures all predefined Jobs are registered at startup
-		JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor = new JobRegistryBeanPostProcessor();
-		jobRegistryBeanPostProcessor.setJobRegistry(jobRegistry);
-		return jobRegistryBeanPostProcessor;
-	}
-
-	@Bean
-	@StepScope
-	public PartitionHandler partitionHandler(DirectChannel outgoingRequestsToWorkers,
-																					 QueueChannel incomingRepliesQueue,
-																					 @Value("#{stepExecution}") StepExecution stepExecution
-	) {
-		MessageChannelPartitionHandler parallelJobPartitionHandler = new MessageChannelPartitionHandler();
-		parallelJobPartitionHandler.setStepName("workerStep");
-		parallelJobPartitionHandler.setGridSize(6);
-		MessagingTemplate template = new MessagingTemplate();
-		template.setDefaultChannel(outgoingRequestsToWorkers);
-		parallelJobPartitionHandler.setMessagingOperations(template);
-		parallelJobPartitionHandler.setReplyChannel(incomingRepliesQueue);
-
-		return parallelJobPartitionHandler;
 	}
 
 	@Bean
