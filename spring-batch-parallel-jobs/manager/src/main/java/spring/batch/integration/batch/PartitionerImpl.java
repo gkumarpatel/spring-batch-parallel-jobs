@@ -29,6 +29,7 @@ public class PartitionerImpl implements Partitioner {
 		for (int i = 0; i < 1; i++) {
 			ExecutionContext executionContext = new ExecutionContext();
 			executionContext.putInt("index", (i + 1));
+			executionContext.putLong("jobExecId", stepExecution.getJobExecution().getId());
 			partitions.put("partition" + (i + 1), executionContext);
 		}
 		log.info("### Partitions: {} created for jobId: {}", partitions, stepExecution.getJobExecutionId());
